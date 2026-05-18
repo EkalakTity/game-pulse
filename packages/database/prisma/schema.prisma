@@ -1,0 +1,408 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+}
+
+enum FeedStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  DUPLICATE
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  THUMBNAIL
+}
+
+enum SocialPlatform {
+  FACEBOOK
+  INSTAGRAM
+  TIKTOK
+  LINE_OA
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  QUEUED
+  PUBLISHED
+  FAILED
+  CANCELLED
+}
+
+enum JobType {
+  FEED_INGEST
+  SOCIAL_PUBLISH
+  MEDIA_DOWNLOAD
+  SCHEDULE_CHECK
+  WEBHOOK_DELIVERY
+  AI_TRANSLATE
+  VIDEO_GENERATE
+}
+
+enum NotificationType {
+  JOB_FAILED
+  TOKEN_EXPIRING
+  TOKEN_EXPIRED
+  SURGE_ALERT
+  SYSTEM
+}
+
+enum JobResult {
+  SUCCESS
+  FAILURE
+  PARTIAL
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String
+  passwordHash String     @map("password_hash")
+  role         UserRole   @default(EDITOR)
+  isActive     Boolean    @default(true) @map("is_active")
+  tenantId     String?    @map("tenant_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  tenant      Tenant?     @relation(fields: [tenantId], references: [id])
+  socialPosts SocialPost[]
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+model FeedSource {
+  id               String     @id @default(cuid())
+  name             String
+  url              String     @unique
+  description      String?
+  logoUrl          String?    @map("logo_url")
+  status           FeedStatus @default(ACTIVE)
+  fetchIntervalMin Int        @default(15) @map("fetch_interval_min")
+  lastFetchedAt    DateTime?  @map("last_fetched_at")
+  lastErrorAt      DateTime?  @map("last_error_at")
+  lastError        String?    @map("last_error")
+  articleCount     Int        @default(0) @map("article_count")
+  tenantId         String?    @map("tenant_id")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  tenant   Tenant?   @relation(fields: [tenantId], references: [id])
+  articles Article[]
+
+  @@index([tenantId])
+  @@map("feed_sources")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String   @default("#6d28d9")
+  keywords    String[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  articles ArticleCategory[]
+
+  @@map("categories")
+}
+
+model Article {
+  id            String        @id @default(cuid())
+  externalId    String?       @map("external_id")
+  title         String
+  summary       String?       @db.Text
+  content       String?       @db.Text
+  url           String        @unique
+  author        String?
+  publishedAt   DateTime?     @map("published_at")
+  status        ArticleStatus @default(DRAFT)
+  contentHash   String        @map("content_hash")
+  thumbnailUrl  String?       @map("thumbnail_url")
+  thumbnailPath String?       @map("thumbnail_path")
+  sourceId      String        @map("source_id")
+
+  aiSummary     String?   @map("ai_summary") @db.Text
+  aiHashtags    String[]  @map("ai_hashtags")
+  aiCaption     Json?     @map("ai_caption")
+  aiProcessedAt DateTime? @map("ai_processed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  source       FeedSource           @relation(fields: [sourceId], references: [id])
+  categories   ArticleCategory[]
+  socialPosts  SocialPost[]
+  media        Media[]
+  translations ArticleTranslation[]
+  video        ArticleVideo?
+
+  @@index([contentHash])
+  @@index([sourceId])
+  @@index([status])
+  @@index([publishedAt])
+  @@map("articles")
+}
+
+model ArticleCategory {
+  articleId  String @map("article_id")
+  categoryId String @map("category_id")
+
+  article  Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, categoryId])
+  @@map("article_categories")
+}
+
+model DuplicateHash {
+  hash      String   @id
+  articleId String   @unique @map("article_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("duplicate_hashes")
+}
+
+model Media {
+  id          String    @id @default(cuid())
+  filename    String
+  originalUrl String?   @map("original_url")
+  storedUrl   String    @map("stored_url")
+  storedPath  String?   @map("stored_path")
+  mimeType    String    @map("mime_type")
+  size        Int?
+  width       Int?
+  height      Int?
+  type        MediaType @default(IMAGE)
+  articleId   String?   @map("article_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  article Article? @relation(fields: [articleId], references: [id])
+
+  @@map("media")
+}
+
+model SocialAccount {
+  id             String         @id @default(cuid())
+  platform       SocialPlatform
+  accountName    String         @map("account_name")
+  accountId      String         @map("account_id")
+  accessToken    String         @map("access_token")
+  refreshToken   String?        @map("refresh_token")
+  tokenExpiresAt DateTime?      @map("token_expires_at")
+  isActive       Boolean        @default(true) @map("is_active")
+  metadata       Json?
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  socialPosts SocialPost[]
+
+  @@unique([platform, accountId])
+  @@map("social_accounts")
+}
+
+model SocialPost {
+  id             String     @id @default(cuid())
+  caption        String?    @db.Text
+  hashtags       String[]
+  mediaUrls      String[]   @map("media_urls")
+  scheduledAt    DateTime?  @map("scheduled_at")
+  publishedAt    DateTime?  @map("published_at")
+  status         PostStatus @default(DRAFT)
+  externalPostId String?    @map("external_post_id")
+  failureReason  String?    @map("failure_reason")
+  retryCount     Int        @default(0) @map("retry_count")
+  articleId      String?    @map("article_id")
+  accountId      String     @map("account_id")
+  createdById    String     @map("created_by_id")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  article    Article?              @relation(fields: [articleId], references: [id])
+  account    SocialAccount         @relation(fields: [accountId], references: [id])
+  createdBy  User                  @relation(fields: [createdById], references: [id])
+  jobLogs    JobLog[]
+  analytics  SocialPostAnalytics[]
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([accountId])
+  @@map("social_posts")
+}
+
+model SocialPostAnalytics {
+  id           String         @id @default(cuid())
+  socialPostId String         @map("social_post_id")
+  snapshotDate DateTime       @map("snapshot_date") @db.Date
+  platform     SocialPlatform
+  likes        Int            @default(0)
+  shares       Int            @default(0)
+  comments     Int            @default(0)
+  reach        Int            @default(0)
+  impressions  Int            @default(0)
+  clicks       Int            @default(0)
+  rawData      Json?          @map("raw_data")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  socialPost SocialPost @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
+
+  @@unique([socialPostId, snapshotDate])
+  @@index([snapshotDate])
+  @@index([platform])
+  @@map("social_post_analytics")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  data      Json?
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model Tenant {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  domain      String?  @unique
+  logoUrl     String?  @map("logo_url")
+  primaryColor String  @default("#6366f1") @map("primary_color")
+  accentColor  String  @default("#8b5cf6") @map("accent_color")
+  isActive    Boolean  @default(true) @map("is_active")
+  settings    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  users    User[]
+  feedSources FeedSource[]
+
+  @@map("tenants")
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  events    String[]
+  secret    String
+  isActive  Boolean  @default(true) @map("is_active")
+  failCount Int      @default(0) @map("fail_count")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deliveries WebhookDelivery[]
+
+  @@map("webhooks")
+}
+
+model WebhookDelivery {
+  id         String   @id @default(cuid())
+  webhookId  String   @map("webhook_id")
+  event      String
+  payload    Json
+  status     String   @default("PENDING")
+  statusCode Int?     @map("status_code")
+  response   String?  @db.Text
+  attempts   Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("webhook_deliveries")
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  keyHash    String    @unique @map("key_hash")
+  keyPrefix  String    @map("key_prefix")
+  isActive   Boolean   @default(true) @map("is_active")
+  lastUsedAt DateTime? @map("last_used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([keyHash])
+  @@map("api_keys")
+}
+
+model ArticleTranslation {
+  id        String   @id @default(cuid())
+  articleId String   @map("article_id")
+  locale    String
+  title     String
+  summary   String?  @db.Text
+  caption   Json?
+  hashtags  String[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, locale])
+  @@index([locale])
+  @@map("article_translations")
+}
+
+model ArticleVideo {
+  id        String   @id @default(cuid())
+  articleId String   @unique @map("article_id")
+  status    String   @default("PENDING")
+  videoUrl  String?  @map("video_url")
+  publicId  String?  @map("public_id")
+  duration  Int?
+  error     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("article_videos")
+}
+
+model JobLog {
+  id           String    @id @default(cuid())
+  jobType      JobType   @map("job_type")
+  jobId        String?   @map("job_id")
+  result       JobResult
+  message      String?   @db.Text
+  durationMs   Int?      @map("duration_ms")
+  metadata     Json?
+  feedSourceId String?   @map("feed_source_id")
+  socialPostId String?   @map("social_post_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  socialPost SocialPost? @relation(fields: [socialPostId], references: [id])
+
+  @@index([jobType])
+  @@index([result])
+  @@index([createdAt])
+  @@map("job_logs")
+}

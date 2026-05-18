@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(docker --version)",
+      "Bash(docker compose *)",
+      "Bash(node -e \"const c=require\\('crypto'\\);console.log\\('AUTH='+c.randomBytes\\(32\\).toString\\('hex'\\)\\);console.log\\('ENC='+c.randomBytes\\(32\\).toString\\('hex'\\)\\)\")",
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(DATABASE_URL=\"postgresql://gamepulse:secret@localhost:5432/gamepulse_db\" npx prisma migrate dev --name init)",
+      "Bash(docker exec *)",
+      "Bash(docker port *)",
+      "Bash(node -e ' *)",
+      "Bash(docker start gamepulse_postgres *)",
+      "Bash(\"C:\\\\Program Files\\\\PostgreSQL\\\\18\\\\bin\\\\psql.exe\" -U postgres -c \"\\\\l\")",
+      "Bash(docker stop *)",
+      "Bash(docker rm *)",
+      "Bash(netstat -ano)",
+      "Bash(npm run *)",
+      "Bash(npx tsx *)",
+      "PowerShell(Get-CimInstance *)",
+      "Bash(npx tsc *)",
+      "Bash(timeout 20 npm run dev)",
+      "Bash(curl -s -o /tmp/page.html -w \"%{http_code}\" http://localhost:3001/)",
+      "Bash(curl *)",
+      "PowerShell(netstat *)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Get-WmiObject *)",
+      "Bash(node *)",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(Get-Service *)",
+      "Skill(claude-api)",
+      "Bash(npx *)",
+      "Bash(DATABASE_URL=\"postgresql://gamepulse:secret@localhost:5434/gamepulse_db\" npx tsx apps/worker/src/seed-test.ts)",
+      "Bash(cat)",
+      "Bash(PGPASSWORD=secret psql -h localhost -p 5434 -U gamepulse -d gamepulse_db -f /tmp/seed_trending.sql)",
+      "Bash(sort -t: -k4 -rn)"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+FROM node:20-alpine
+RUN apk add --no-cache libc6-compat openssl
+WORKDIR /app
+
+COPY package.json turbo.json tsconfig.base.json ./
+COPY apps/worker/package.json ./apps/worker/
+COPY packages/database/package.json ./packages/database/
+COPY packages/types/package.json ./packages/types/
+COPY packages/config/package.json ./packages/config/
+RUN npm install
+
+COPY . .
+
+RUN cd packages/database && npx prisma generate
+
+CMD ["npm", "run", "dev", "--workspace=apps/worker"]

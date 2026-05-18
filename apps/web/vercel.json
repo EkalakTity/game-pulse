@@ -1,0 +1,17 @@
+{
+  "buildCommand": "cd ../.. && npx turbo build --filter=web",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["sin1"],
+  "env": {
+    "DATABASE_URL": "@gamepulse-database-url",
+    "REDIS_URL": "@gamepulse-redis-url",
+    "NEXTAUTH_SECRET": "@gamepulse-nextauth-secret",
+    "NEXTAUTH_URL": "@gamepulse-nextauth-url",
+    "TOKEN_ENCRYPTION_KEY": "@gamepulse-token-encryption-key",
+    "CLOUDINARY_CLOUD_NAME": "@gamepulse-cloudinary-cloud-name",
+    "CLOUDINARY_API_KEY": "@gamepulse-cloudinary-api-key",
+    "CLOUDINARY_API_SECRET": "@gamepulse-cloudinary-api-secret"
+  }
+}

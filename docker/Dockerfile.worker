@@ -1,0 +1,36 @@
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+FROM base AS deps
+COPY package.json turbo.json ./
+COPY apps/worker/package.json ./apps/worker/
+COPY packages/database/package.json ./packages/database/
+COPY packages/types/package.json ./packages/types/
+COPY packages/config/package.json ./packages/config/
+RUN npm install --frozen-lockfile
+
+FROM base AS prod-deps
+COPY package.json turbo.json ./
+COPY apps/worker/package.json ./apps/worker/
+COPY packages/database/package.json ./packages/database/
+COPY packages/types/package.json ./packages/types/
+COPY packages/config/package.json ./packages/config/
+RUN npm install --frozen-lockfile --omit=dev
+
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npx turbo build --filter=worker
+
+FROM base AS runner
+ENV NODE_ENV=production
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 worker
+
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=builder --chown=worker:nodejs /app/apps/worker/dist ./dist
+
+USER worker
+
+CMD ["node", "dist/index.js"]

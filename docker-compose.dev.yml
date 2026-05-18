@@ -1,0 +1,122 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gamepulse_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gamepulse
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: gamepulse_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gamepulse -d gamepulse_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: gamepulse_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev.web
+    container_name: gamepulse_web
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    environment:
+      DATABASE_URL: postgresql://gamepulse:secret@postgres:5432/gamepulse_db
+      REDIS_URL: redis://redis:6379
+      NEXTAUTH_SECRET: 36234fe3f009ccfb4f96e37b99b3c94f27eebbe31a3886cf1047da2c0f143fd8
+      NEXTAUTH_URL: http://localhost:3002
+      TOKEN_ENCRYPTION_KEY: adab8fc13ed1d23eef0b7cb658d3ed6094ea4c2dadc02263b9792d5c796bee81
+      NEXT_PUBLIC_APP_URL: http://localhost:3002
+      CLOUDINARY_CLOUD_NAME: placeholder
+      CLOUDINARY_API_KEY: placeholder
+      CLOUDINARY_API_SECRET: placeholder
+      NODE_ENV: development
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      - ./packages:/app/packages
+      - web_nm:/app/node_modules
+      - web_next:/app/apps/web/.next
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Migrate + seed on first start, then launch dev server
+    command: >
+      sh -c "
+        cd /app/packages/database &&
+        npx prisma db push --accept-data-loss &&
+        npx tsx prisma/seed.ts || true &&
+        cd /app &&
+        npm run dev --workspace=apps/web
+      "
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev.worker
+    container_name: gamepulse_worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://gamepulse:secret@postgres:5432/gamepulse_db
+      REDIS_URL: redis://redis:6379
+      TOKEN_ENCRYPTION_KEY: adab8fc13ed1d23eef0b7cb658d3ed6094ea4c2dadc02263b9792d5c796bee81
+      CLOUDINARY_CLOUD_NAME: placeholder
+      CLOUDINARY_API_KEY: placeholder
+      CLOUDINARY_API_SECRET: placeholder
+      INGEST_WORKER_CONCURRENCY: "5"
+      PUBLISH_WORKER_CONCURRENCY: "2"
+      MEDIA_WORKER_CONCURRENCY: "10"
+      LOG_LEVEL: info
+      NODE_ENV: development
+    volumes:
+      - ./apps/worker/src:/app/apps/worker/src
+      - ./packages:/app/packages
+      - worker_nm:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  bull-board:
+    image: deadly0/bull-board:latest
+    container_name: gamepulse_bull_board
+    restart: unless-stopped
+    ports:
+      - "3003:3000"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  web_nm:
+  web_next:
+  worker_nm:

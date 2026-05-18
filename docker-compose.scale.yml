@@ -1,0 +1,29 @@
+version: "3.9"
+
+# Horizontal scaling overlay — run alongside docker-compose.dev.yml or production compose:
+#   docker compose -f docker-compose.dev.yml -f docker-compose.scale.yml up --scale worker=3
+#
+# Removes the fixed container_name so Docker Compose can create multiple replicas.
+# Each replica picks up jobs from the same Redis queues automatically (BullMQ handles coordination).
+
+services:
+  worker:
+    container_name: ""  # Remove fixed name to allow multiple replicas
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+    environment:
+      INGEST_WORKER_CONCURRENCY: "3"   # Divide load across replicas
+      PUBLISH_WORKER_CONCURRENCY: "1"
+      MEDIA_WORKER_CONCURRENCY: "5"
+      AI_WORKER_CONCURRENCY: "1"
