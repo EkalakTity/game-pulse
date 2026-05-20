@@ -75,7 +75,7 @@ export function SocialPostsTable({ posts, onCancel, onRetry }: Props) {
                 </td>
                 <td className="px-4 py-3 text-xs text-[#6b6988]">
                   {post.scheduledAt
-                    ? new Date(post.scheduledAt).toLocaleString()
+                    ? new Date(post.scheduledAt).toLocaleString("en-GB", { timeZone: "UTC", hour12: false })
                     : <span>—</span>}
                 </td>
                 <td className="px-4 py-3">

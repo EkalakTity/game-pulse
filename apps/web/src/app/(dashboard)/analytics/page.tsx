@@ -72,7 +72,7 @@ export default async function AnalyticsPage() {
                 <Icon size={14} className={color} />
               </div>
             </div>
-            <p className="mt-2 text-3xl font-bold">{value.toLocaleString()}</p>
+            <p className="mt-2 text-3xl font-bold">{value.toLocaleString("en-US")}</p>
           </div>
         ))}
       </div>
@@ -144,7 +144,7 @@ export default async function AnalyticsPage() {
           ).map(([label, val]) => (
             <div key={label} className="text-center">
               <p className="text-2xl font-bold text-[#f1f0ff]">
-                {val > 0 ? val.toLocaleString() : "—"}
+                {val > 0 ? val.toLocaleString("en-US") : "—"}
               </p>
               <p className="text-xs text-[#6b6988]">{label}</p>
             </div>

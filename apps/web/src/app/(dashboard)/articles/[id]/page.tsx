@@ -52,7 +52,7 @@ export default async function ArticleDetailPage({ params }: Props) {
 
       <PageHeader
         title={article.title}
-        description={`${article.source.name} · ${article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : "No date"}`}
+        description={`${article.source.name} · ${article.publishedAt ? new Date(article.publishedAt).toLocaleDateString("en-GB", { timeZone: "UTC" }) : "No date"}`}
         action={
           <StatusBadge
             status={article.status as "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DUPLICATE"}

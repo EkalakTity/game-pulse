@@ -210,7 +210,7 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
               <span
                 className={`text-xs ${captionLeft < 50 ? "text-red-400" : captionLeft < 200 ? "text-yellow-400" : "text-[#6b6988]"}`}
               >
-                {captionLeft.toLocaleString()} left
+                {captionLeft.toLocaleString("en-US")} left
               </span>
             </div>
             <textarea

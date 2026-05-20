@@ -28,7 +28,14 @@ export function startBullBoard() {
   const app = express();
   app.use(BASE_PATH, serverAdapter.getRouter());
 
-  app.listen(BULL_BOARD_PORT, () => {
+  const server = app.listen(BULL_BOARD_PORT, () => {
     console.log(`[BullBoard] Queue monitor running at http://localhost:${BULL_BOARD_PORT}${BASE_PATH}`);
+  });
+  server.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.warn(`[BullBoard] Port ${BULL_BOARD_PORT} in use — dashboard unavailable`);
+    } else {
+      console.error("[BullBoard] Server error:", err.message);
+    }
   });
 }

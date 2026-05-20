@@ -27,9 +27,9 @@ const securityHeaders = [
 
 const nextConfig = {
   output: "standalone",
-  transpilePackages: ["@gamepulse/database", "@gamepulse/types", "@gamepulse/config"],
+  transpilePackages: ["@gamepulse/types", "@gamepulse/config"],
   experimental: {
-    serverComponentsExternalPackages: ["@anthropic-ai/sdk"],
+    serverComponentsExternalPackages: ["@anthropic-ai/sdk", "@prisma/client", "@gamepulse/database"],
   },
   images: {
     remotePatterns: [

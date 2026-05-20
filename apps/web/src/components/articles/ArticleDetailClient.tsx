@@ -18,6 +18,10 @@ type Props = {
   allCategories: Pick<Category, "id" | "name" | "color">[];
 };
 
+function formatDate(d: Date): string {
+  return d.toLocaleString("en-GB", { timeZone: "UTC", hour12: false });
+}
+
 const STATUS_TRANSITIONS: Record<string, { label: string; icon: React.ReactNode; next: string }[]> = {
   DRAFT:     [{ label: "Publish",  icon: <CheckCircle size={14} />, next: "PUBLISHED" }, { label: "Archive", icon: <Archive size={14} />, next: "ARCHIVED" }],
   PUBLISHED: [{ label: "Archive",  icon: <Archive size={14} />,     next: "ARCHIVED"  }, { label: "Revert to Draft", icon: <FileText size={14} />, next: "DRAFT" }],
@@ -174,8 +178,8 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
         <div className="rounded-xl border border-surface-border bg-surface-raised p-4 space-y-2">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[#6b6988]">Details</h2>
           <MetaRow label="Author"    value={article.author ?? "—"} />
-          <MetaRow label="Published" value={article.publishedAt ? new Date(article.publishedAt).toLocaleString() : "—"} />
-          <MetaRow label="Ingested"  value={new Date(article.createdAt).toLocaleString()} />
+          <MetaRow label="Published" value={article.publishedAt ? formatDate(new Date(article.publishedAt)) : "—"} />
+          <MetaRow label="Ingested"  value={formatDate(new Date(article.createdAt))} />
           {article.externalId && <MetaRow label="External ID" value={article.externalId} mono />}
           <div className="pt-1">
             <a

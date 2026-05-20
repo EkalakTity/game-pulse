@@ -83,7 +83,7 @@ export function SourceCard({ source, onEdit, onRefresh, onTogglePause, onDelete 
       <div className="flex items-center justify-between">
         <SourceHealthBadge lastFetchedAt={source.lastFetchedAt} status={source.status} />
         <span className="text-xs text-[#6b6988]">
-          {source.articleCount.toLocaleString()} articles
+          {source.articleCount.toLocaleString("en-US")} articles
         </span>
       </div>
 

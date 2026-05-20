@@ -63,7 +63,7 @@ export default async function DashboardPage() {
               <span className="text-sm text-[#a09ec0]">{label}</span>
               <Icon size={18} className={color} />
             </div>
-            <p className="mt-2 text-3xl font-bold">{value.toLocaleString()}</p>
+            <p className="mt-2 text-3xl font-bold">{value.toLocaleString("en-US")}</p>
           </div>
         ))}
       </div>
@@ -100,7 +100,7 @@ export default async function DashboardPage() {
                   )}
                 </div>
                 <span className="shrink-0 text-xs text-[#6b6988]">
-                  {new Date(log.createdAt).toLocaleTimeString()}
+                  {new Date(log.createdAt).toLocaleTimeString("en-GB", { timeZone: "UTC", hour12: false })}
                 </span>
               </div>
             ))}

@@ -329,7 +329,7 @@ export function ArticlesClient({ sources, categories }: Props) {
                 <td className="px-4 py-3 hidden sm:table-cell">
                   <span className="text-xs text-[#6b6988]">
                     {article.publishedAt
-                      ? new Date(article.publishedAt).toLocaleDateString()
+                      ? new Date(article.publishedAt).toLocaleDateString("en-GB", { timeZone: "UTC" })
                       : "—"}
                   </span>
                 </td>

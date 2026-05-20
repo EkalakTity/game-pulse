@@ -132,10 +132,10 @@ export function ApiKeysClient() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-[#6b6b8a] text-xs">
-                    {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString() : "Never"}
+                    {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString("en-GB", { timeZone: "UTC" }) : "Never"}
                   </td>
                   <td className="px-4 py-3 text-[#6b6b8a] text-xs">
-                    {new Date(key.createdAt).toLocaleDateString()}
+                    {new Date(key.createdAt).toLocaleDateString("en-GB", { timeZone: "UTC" })}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 justify-end">

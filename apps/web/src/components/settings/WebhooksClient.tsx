@@ -215,7 +215,7 @@ export function WebhooksClient() {
                         {d.status === "SUCCESS" ? <CheckCircle2 size={12} className="text-emerald-400 shrink-0" /> : <XCircle size={12} className="text-[#ef4444] shrink-0" />}
                         <span className="text-[#a09ec0]">{d.event}</span>
                         {d.statusCode && <span className="text-[#6b6b8a]">{d.statusCode}</span>}
-                        <span className="ml-auto text-[#6b6b8a]">{new Date(d.createdAt).toLocaleTimeString()}</span>
+                        <span className="ml-auto text-[#6b6b8a]">{new Date(d.createdAt).toLocaleTimeString("en-GB", { timeZone: "UTC", hour12: false })}</span>
                       </div>
                     ))}
                   </div>
