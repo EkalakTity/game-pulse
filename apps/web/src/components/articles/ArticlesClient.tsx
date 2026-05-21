@@ -291,19 +291,7 @@ export function ArticlesClient({ sources, categories }: Props) {
                   />
                 </td>
                 <td className="px-4 py-3">
-                  {(() => {
-                    const cloudMedia = article.media?.[0];
-                    const imgSrc = cloudMedia
-                      ? resolveImageUrl(cloudMedia.storedUrl, cloudMedia.storedPath, "thumbnail")
-                      : article.thumbnailUrl ?? null;
-                    return imgSrc ? (
-                      <img src={imgSrc} alt="" className="h-9 w-9 rounded object-cover" />
-                    ) : (
-                      <div className="flex h-9 w-9 items-center justify-center rounded bg-surface-border">
-                        <ImageIcon size={14} className="text-[#6b6988]" />
-                      </div>
-                    );
-                  })()}
+                  <ThumbnailCell article={article} />
                 </td>
                 <td className="px-4 py-3">
                   <p className="line-clamp-2 font-medium text-[#f1f0ff] leading-snug">
@@ -370,6 +358,28 @@ export function ArticlesClient({ sources, categories }: Props) {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+function ThumbnailCell({ article }: { article: ArticleWithRelations }) {
+  const [imgError, setImgError] = useState(false);
+  const cloudMedia = article.media?.[0];
+  const imgSrc = !imgError && (cloudMedia
+    ? resolveImageUrl(cloudMedia.storedUrl, cloudMedia.storedPath, "thumbnail")
+    : article.thumbnailUrl ?? null);
+
+  return imgSrc ? (
+    <img
+      src={imgSrc}
+      alt=""
+      referrerPolicy="no-referrer"
+      onError={() => setImgError(true)}
+      className="h-9 w-9 rounded object-cover"
+    />
+  ) : (
+    <div className="flex h-9 w-9 items-center justify-center rounded bg-surface-border">
+      <ImageIcon size={14} className="text-[#6b6988]" />
     </div>
   );
 }
