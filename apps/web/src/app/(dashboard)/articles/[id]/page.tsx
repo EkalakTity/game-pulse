@@ -25,11 +25,6 @@ export default async function ArticleDetailPage({ params }: Props) {
         source: true,
         categories: { include: { category: true } },
         media: true,
-        socialPosts: {
-          include: { account: true },
-          orderBy: { createdAt: "desc" },
-          take: 10,
-        },
       },
     }),
     prisma.category.findMany({

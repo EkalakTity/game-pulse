@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, RefreshCw, Archive, FileText, Copy } from "lucide-react";
+import { CheckCircle, RefreshCw, Archive, FileText, ExternalLink } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { CategoryPill } from "@/components/categories/CategoryPill";
 import { resolveImageUrl } from "@/lib/utils/cloudinary";
@@ -50,6 +50,8 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
       if (res.ok) {
         setStatus(nextStatus as typeof status);
         setFeedback("Status updated");
+      } else {
+        setFeedback("Failed to update status");
       }
     } finally {
       setSaving(false);
@@ -67,6 +69,7 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
         body: JSON.stringify({ categoryIds: selectedCats }),
       });
       if (res.ok) setFeedback("Categories saved");
+      else setFeedback("Failed to save categories");
     } finally {
       setCatSaving(false);
       setTimeout(() => setFeedback(null), 3000);
@@ -127,7 +130,11 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
       <div className="space-y-4">
         {/* Feedback toast */}
         {feedback && (
-          <div className="rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 px-4 py-2 text-sm text-[#22c55e]">
+          <div className={`rounded-lg px-4 py-2 text-sm border ${
+            feedback.startsWith("Failed")
+              ? "bg-red-500/10 border-red-500/20 text-red-400"
+              : "bg-[#22c55e]/10 border-[#22c55e]/20 text-[#22c55e]"
+          }`}>
             {feedback}
           </div>
         )}
@@ -188,7 +195,7 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs text-brand-300 hover:underline"
             >
-              <Copy size={11} />
+              <ExternalLink size={11} />
               View original article
             </a>
           </div>
