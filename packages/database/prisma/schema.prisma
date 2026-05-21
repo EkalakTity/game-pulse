@@ -102,6 +102,7 @@ model FeedSource {
   lastError        String?    @map("last_error")
   articleCount     Int        @default(0) @map("article_count")
   tenantId         String?    @map("tenant_id")
+  gameTags         String[]   @default([]) @map("game_tags")
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
 
@@ -351,6 +352,16 @@ model ApiKey {
 
   @@index([keyHash])
   @@map("api_keys")
+}
+
+model InterestedGame {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("interested_games")
 }
 
 model ArticleTranslation {

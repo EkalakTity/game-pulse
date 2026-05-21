@@ -15,6 +15,7 @@ import {
   Webhook,
   KeyRound,
   Building2,
+  Gamepad2,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/articles", label: "Articles", icon: Newspaper },
   { href: "/sources", label: "Feed Sources", icon: Rss },
+  { href: "/games", label: "Game Feeds", icon: Gamepad2 },
   { href: "/categories", label: "Categories", icon: Tag },
   { href: "/schedule", label: "Schedule", icon: CalendarDays },
   { href: "/social", label: "Social Posts", icon: Share2 },

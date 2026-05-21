@@ -28,4 +28,5 @@ export type {
   ArticleTranslation,
   ArticleVideo,
   Tenant,
+  InterestedGame,
 } from "@prisma/client";
