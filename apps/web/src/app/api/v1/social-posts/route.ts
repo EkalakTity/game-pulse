@@ -6,6 +6,7 @@ import { SocialPostRepository } from "@/server/repositories/SocialPostRepository
 import { SocialAccountRepository } from "@/server/repositories/SocialAccountRepository";
 import { handleApiError } from "@/server/middleware/errorHandler";
 import { withAuth } from "@/lib/auth/middleware";
+import { getPublishQueue } from "@/lib/queue/client";
 
 const service = new SocialPostService(new SocialPostRepository(), new SocialAccountRepository());
 
@@ -37,6 +38,11 @@ export async function POST(req: NextRequest) {
     const input = createSocialPostSchema.parse(body);
     const result = await service.createPost({ ...input, createdById: token!.sub! });
     if (!result.success) return handleApiError(result.error);
+
+    if (result.data.status === "QUEUED") {
+      await getPublishQueue().add("PUBLISH_POST", { socialPostId: result.data.id });
+    }
+
     return NextResponse.json({ success: true, data: result.data }, { status: 201 });
   } catch (error) {
     return handleApiError(error);
