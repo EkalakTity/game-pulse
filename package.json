@@ -2,6 +2,9 @@
   "name": "gamepulse-hub",
   "private": true,
   "packageManager": "npm@11.11.0",
+  "engines": {
+    "node": ">=20"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
