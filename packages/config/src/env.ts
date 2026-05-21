@@ -24,6 +24,9 @@ const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>;
 
 function validateEnv(): Env {
+  if (process.env["SKIP_ENV_VALIDATION"] === "1") {
+    return process.env as unknown as Env;
+  }
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
     console.error("Invalid environment variables:", result.error.flatten().fieldErrors);
