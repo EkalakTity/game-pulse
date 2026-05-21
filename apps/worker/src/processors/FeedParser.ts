@@ -49,6 +49,13 @@ export class FeedParser {
     const mediaThumbnail = item["media:thumbnail"] as { $?: { url?: string } } | undefined;
     if (mediaThumbnail?.$?.url) return mediaThumbnail.$.url;
 
+    // Last resort: extract the first <img> src from the HTML content body
+    const html = (item["content:encoded"] ?? item["content"] ?? item["description"] ?? "") as string;
+    if (html) {
+      const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (match?.[1]) return match[1];
+    }
+
     return undefined;
   }
 

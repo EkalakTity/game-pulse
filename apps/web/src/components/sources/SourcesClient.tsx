@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Plus, Search } from "lucide-react";
 import { SourceCard } from "./SourceCard";
 import { SourceForm } from "./SourceForm";
@@ -17,6 +17,17 @@ export function SourcesClient({ initialSources }: Props) {
   const [editing, setEditing] = useState<FeedSource | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
+  // Poll every 30 s so lastFetchedAt / articleCount stay current while the worker runs
+  useEffect(() => {
+    const poll = setInterval(async () => {
+      try {
+        const fresh = await apiClient.get<FeedSource[]>("/feeds");
+        setSources(fresh);
+      } catch {}
+    }, 30_000);
+    return () => clearInterval(poll);
+  }, []);
+
   const filtered = sources.filter(
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -25,6 +36,13 @@ export function SourcesClient({ initialSources }: Props) {
 
   const handleRefresh = useCallback(async (id: string) => {
     await apiClient.post(`/feeds/${id}/refresh`, {});
+    // Re-fetch after 5 s so the card reflects the updated lastFetchedAt once the job finishes
+    setTimeout(async () => {
+      try {
+        const fresh = await apiClient.get<FeedSource[]>("/feeds");
+        setSources(fresh);
+      } catch {}
+    }, 5_000);
   }, []);
 
   const handleTogglePause = useCallback(async (source: FeedSource) => {

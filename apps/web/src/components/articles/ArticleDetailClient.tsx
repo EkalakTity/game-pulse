@@ -37,6 +37,7 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
   const [saving, setSaving]         = useState(false);
   const [catSaving, setCatSaving]   = useState(false);
   const [feedback, setFeedback]     = useState<string | null>(null);
+  const [imgError, setImgError]     = useState(false);
 
   async function changeStatus(nextStatus: string) {
     setSaving(true);
@@ -91,13 +92,15 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
         {/* Hero image */}
         {(() => {
           const cloudMedia = article.media[0];
-          const heroSrc = cloudMedia
+          const heroSrc = !imgError && (cloudMedia
             ? resolveImageUrl(cloudMedia.storedUrl, cloudMedia.storedPath, "hero")
-            : article.thumbnailUrl ?? null;
+            : article.thumbnailUrl ?? null);
           return heroSrc ? (
             <img
               src={heroSrc}
               alt=""
+              referrerPolicy="no-referrer"
+              onError={() => setImgError(true)}
               className="w-full rounded-xl object-cover max-h-72 border border-surface-border"
             />
           ) : (
