@@ -240,7 +240,7 @@ model SocialPost {
   updatedAt      DateTime   @updatedAt @map("updated_at")
 
   article    Article?              @relation(fields: [articleId], references: [id])
-  account    SocialAccount         @relation(fields: [accountId], references: [id])
+  account    SocialAccount         @relation(fields: [accountId], references: [id], onDelete: Cascade)
   createdBy  User                  @relation(fields: [createdById], references: [id])
   jobLogs    JobLog[]
   analytics  SocialPostAnalytics[]
@@ -410,7 +410,7 @@ model JobLog {
   socialPostId String?   @map("social_post_id")
   createdAt    DateTime  @default(now()) @map("created_at")
 
-  socialPost SocialPost? @relation(fields: [socialPostId], references: [id])
+  socialPost SocialPost? @relation(fields: [socialPostId], references: [id], onDelete: SetNull)
 
   @@index([jobType])
   @@index([result])
