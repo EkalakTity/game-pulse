@@ -43,7 +43,7 @@ export function createPublishWorker(concurrency: number) {
       });
 
       if (!post) throw new Error(`Social post ${socialPostId} not found`);
-      if (post.status === "CANCELLED") return;
+      if (post.status === "CANCELLED" || post.status === "PUBLISHED") return;
 
       await prisma.socialPost.update({ where: { id: socialPostId }, data: { status: "QUEUED" } });
 

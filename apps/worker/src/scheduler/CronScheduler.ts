@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import { prisma } from "@gamepulse/database";
-import { ingestQueue } from "../queues/definitions";
+import { ingestQueue, scheduleQueue, publishQueue } from "../queues/definitions";
 import { runTokenExpiryCheck } from "../jobs/TokenExpiryCheck";
 
 export class CronScheduler {
@@ -12,18 +12,46 @@ export class CronScheduler {
       await this.enqueueDueFeeds();
     });
 
+    // Scheduled post check — every minute, trigger ScheduleWorker
+    const scheduleTask = cron.schedule("* * * * *", async () => {
+      await scheduleQueue.add("CHECK_SCHEDULED", {}, { jobId: `schedule-check-${Date.now()}` });
+    });
+
     // Token expiry check — daily at 09:00
     const tokenTask = cron.schedule("0 9 * * *", async () => {
       await runTokenExpiryCheck();
     });
 
-    this.tasks.push(feedTask, tokenTask);
+    // Recovery — every 5 minutes, re-enqueue QUEUED posts that have no active job
+    const recoveryTask = cron.schedule("*/5 * * * *", async () => {
+      await this.recoverQueuedPosts();
+    });
+
+    this.tasks.push(feedTask, scheduleTask, recoveryTask, tokenTask);
     console.log("CronScheduler started");
   }
 
   stop(): void {
     this.tasks.forEach((t) => t.stop());
     this.tasks = [];
+  }
+
+  private async recoverQueuedPosts(): Promise<void> {
+    // Find posts that have been QUEUED for more than 2 minutes — they likely missed their queue job
+    const staleThreshold = new Date(Date.now() - 2 * 60 * 1000);
+    const stuck = await prisma.socialPost.findMany({
+      where: { status: "QUEUED", updatedAt: { lte: staleThreshold } },
+      select: { id: true },
+    });
+
+    for (const post of stuck) {
+      // jobId deduplicates — won't add if the job is already waiting/active
+      await publishQueue.add("PUBLISH_POST", { socialPostId: post.id }, { jobId: `publish-${post.id}` });
+    }
+
+    if (stuck.length > 0) {
+      console.log(`[Recovery] Re-enqueued ${stuck.length} stuck QUEUED post(s)`);
+    }
   }
 
   private async enqueueDueFeeds(): Promise<void> {

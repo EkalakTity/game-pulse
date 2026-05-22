@@ -40,7 +40,13 @@ export async function POST(req: NextRequest) {
     if (!result.success) return handleApiError(result.error);
 
     if (result.data.status === "QUEUED") {
-      await getPublishQueue().add("PUBLISH_POST", { socialPostId: result.data.id });
+      try {
+        await getPublishQueue().add("PUBLISH_POST", { socialPostId: result.data.id }, {
+          jobId: `publish-${result.data.id}`,
+        });
+      } catch (queueErr) {
+        console.error("[social-posts] Failed to enqueue publish job — recovery cron will retry:", queueErr);
+      }
     }
 
     return NextResponse.json({ success: true, data: result.data }, { status: 201 });
