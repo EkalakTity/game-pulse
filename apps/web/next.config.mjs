@@ -6,10 +6,10 @@ const cspDirectives = [
   isProd
     ? "script-src 'self' 'unsafe-inline'"
     : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://res.cloudinary.com https://*.cdninstagram.com",
-  "font-src 'self'",
-  "connect-src 'self'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: blob: https: http:",
+  "font-src 'self' https://fonts.gstatic.com",
+  "connect-src 'self' https:",
   "frame-ancestors 'none'",
 ];
 
