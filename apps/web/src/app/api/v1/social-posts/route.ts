@@ -35,9 +35,12 @@ export async function POST(req: NextRequest) {
   try {
     const token = await getToken({ req, secret: process.env["NEXTAUTH_SECRET"] });
     const body = await req.json();
+    console.log("[social-posts POST] raw body:", JSON.stringify(body));
     const input = createSocialPostSchema.parse(body);
+    console.log("[social-posts POST] parsed input:", JSON.stringify(input));
     const result = await service.createPost({ ...input, createdById: token!.sub! });
     if (!result.success) return handleApiError(result.error);
+    console.log("[social-posts POST] created post id:", result.data.id, "articleId:", result.data.articleId ?? "none");
 
     if (result.data.status === "QUEUED") {
       try {

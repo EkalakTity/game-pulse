@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Hash, Calendar, Send, Sparkles, CheckCheck } from "lucide-react";
 import type { SafeSocialAccount } from "@/lib/api/socialAccounts";
 import type { SocialPostWithRelations } from "@/server/repositories/SocialPostRepository";
@@ -8,7 +8,7 @@ import { PLATFORM_META } from "@/lib/platforms";
 import { socialPostsApi, type CreatePostPayload } from "@/lib/api/socialPosts";
 import { articlesApi, type AiSuggestion } from "@/lib/api/articles";
 
-type ArticleOption = { id: string; title: string; thumbnailUrl: string | null };
+type ArticleOption = { id: string; title: string; url: string; thumbnailUrl: string | null };
 
 type Props = {
   accounts: SafeSocialAccount[];
@@ -32,10 +32,23 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [scheduledAt, setScheduledAt] = useState("");
   const [scheduleMode, setScheduleMode] = useState(false);
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<AiSuggestion | null>(null);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!articleId) {
+      setMediaUrls([]);
+      return;
+    }
+    const article = articles.find((a) => a.id === articleId);
+    if (!article) return;
+    setCaption(`${article.title}\n\n${article.url}`);
+    setMediaUrls(article.thumbnailUrl ? [article.thumbnailUrl] : []);
+    setAiSuggestion(null);
+  }, [articleId, articles]);
 
   const selectedAccount = accounts.find((a) => a.id === accountId);
   const meta = selectedAccount ? PLATFORM_META[selectedAccount.platform] : null;
@@ -95,8 +108,10 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
         ...(articleId && { articleId }),
         caption: caption.trim() || undefined,
         hashtags,
+        mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
         scheduledAt: scheduleMode ? new Date(scheduledAt).toISOString() : undefined,
       };
+      console.log("[PostComposer] submitting payload:", JSON.stringify(payload));
       const post = await socialPostsApi.create(payload);
       onCreated(post);
     } catch (err) {
@@ -144,7 +159,7 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
             <div className="flex gap-2">
               <select
                 value={articleId}
-                onChange={(e) => { setArticleId(e.target.value); setAiSuggestion(null); }}
+                onChange={(e) => { setArticleId(e.target.value); setCaption(""); setAiSuggestion(null); }}
                 className="flex-1 rounded-md border border-[#2e2e3e] bg-[#111118] px-3 py-2 text-sm text-[#f1f0ff] focus:border-[#8b5cf6] focus:outline-none"
               >
                 <option value="">No article</option>
