@@ -16,7 +16,7 @@ export default async function SocialPage() {
     postRepo.findMany({ limit: 50 }),
     prisma.article.findMany({
       where: { status: "PUBLISHED" },
-      select: { id: true, title: true, thumbnailUrl: true },
+      select: { id: true, title: true, url: true, thumbnailUrl: true },
       orderBy: { publishedAt: "desc" },
       take: 100,
     }),
