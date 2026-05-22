@@ -25,6 +25,7 @@ const PLATFORM_KEY_MAP: Record<string, keyof AiSuggestion["captions"]> = {
 };
 
 export function PostComposer({ accounts, articles, onCreated, onClose }: Props) {
+  console.log("[PostComposer] mount — articles available:", articles.length, articles.map(a => a.id));
   const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
   const [articleId, setArticleId] = useState("");
   const [caption, setCaption] = useState("");
@@ -151,6 +152,13 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
             </select>
           </div>
 
+          {/* Debug panel */}
+          <div className="rounded-md bg-yellow-900/30 border border-yellow-600/40 px-3 py-2 text-xs text-yellow-300 font-mono space-y-0.5">
+            <div>articles loaded: <strong>{articles.length}</strong></div>
+            <div>articleId state: <strong>{articleId || "(empty)"}</strong></div>
+            <div>mediaUrls: <strong>{mediaUrls.length > 0 ? mediaUrls[0]?.slice(0, 40) + "…" : "(none)"}</strong></div>
+          </div>
+
           {/* Article picker + AI button */}
           <div>
             <label className="mb-1.5 block text-xs font-medium text-[#a09ec0]">
@@ -159,7 +167,12 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
             <div className="flex gap-2">
               <select
                 value={articleId}
-                onChange={(e) => { setArticleId(e.target.value); setCaption(""); setAiSuggestion(null); }}
+                onChange={(e) => {
+                console.log("[PostComposer] article selected:", e.target.value || "(none)");
+                setArticleId(e.target.value);
+                setCaption("");
+                setAiSuggestion(null);
+              }}
                 className="flex-1 rounded-md border border-[#2e2e3e] bg-[#111118] px-3 py-2 text-sm text-[#f1f0ff] focus:border-[#8b5cf6] focus:outline-none"
               >
                 <option value="">No article</option>
