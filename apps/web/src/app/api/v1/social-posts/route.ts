@@ -51,6 +51,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: result.data }, { status: 201 });
   } catch (error) {
-    return handleApiError(error);
+    const message = error instanceof Error ? `${error.message}${error.cause ? ` | cause: ${error.cause}` : ""}` : String(error);
+    console.error("[social-posts POST]", error);
+    return NextResponse.json(
+      { success: false, error: { code: "INTERNAL_ERROR", message } },
+      { status: 500 },
+    );
   }
 }
