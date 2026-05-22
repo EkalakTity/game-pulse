@@ -50,6 +50,7 @@ export function createIngestWorker(concurrency: number) {
                 thumbnailUrl: article.thumbnailUrl,
                 contentHash: hash,
                 sourceId: feedSourceId,
+                status: "PUBLISHED",
               },
             });
             await tx.duplicateHash.create({ data: { hash, articleId: a.id } });
