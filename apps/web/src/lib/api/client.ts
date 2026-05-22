@@ -20,6 +20,8 @@ async function request<T>(
     ...options,
   });
 
+  if (res.status === 204) return undefined as T;
+
   const json = (await res.json()) as ApiResponse<T>;
 
   if (!json.success) {
