@@ -5,13 +5,11 @@ import { Plus, PenLine } from "lucide-react";
 import { SocialAccountCard } from "./SocialAccountCard";
 import { SocialAccountForm } from "./SocialAccountForm";
 import { SocialPostsTable } from "./SocialPostsTable";
-import { PostComposer } from "./PostComposer";
+import { PostComposer, type ArticleOption } from "./PostComposer";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { socialAccountsApi, type SafeSocialAccount, type CreateAccountPayload } from "@/lib/api/socialAccounts";
 import { socialPostsApi } from "@/lib/api/socialPosts";
 import type { SocialPostWithRelations } from "@/server/repositories/SocialPostRepository";
-
-type ArticleOption = { id: string; title: string; thumbnailUrl: string | null };
 
 type Props = {
   initialAccounts: SafeSocialAccount[];

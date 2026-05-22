@@ -8,7 +8,7 @@ import { PLATFORM_META } from "@/lib/platforms";
 import { socialPostsApi, type CreatePostPayload } from "@/lib/api/socialPosts";
 import { articlesApi, type AiSuggestion } from "@/lib/api/articles";
 
-type ArticleOption = { id: string; title: string; url: string; thumbnailUrl: string | null };
+export type ArticleOption = { id: string; title: string; url: string; thumbnailUrl: string | null };
 
 type Props = {
   accounts: SafeSocialAccount[];
