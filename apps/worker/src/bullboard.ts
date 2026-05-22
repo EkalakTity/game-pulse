@@ -4,7 +4,7 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { ExpressAdapter } from "@bull-board/express";
 import { ingestQueue, publishQueue, scheduleQueue, mediaQueue, aiQueue, webhookQueue, translateQueue, videoQueue } from "./queues/definitions";
 
-const BULL_BOARD_PORT = parseInt(process.env["BULL_BOARD_PORT"] ?? "3001", 10);
+const BULL_BOARD_PORT = parseInt(process.env["PORT"] ?? process.env["BULL_BOARD_PORT"] ?? "3001", 10);
 const BASE_PATH = "/queues";
 
 export function startBullBoard() {
