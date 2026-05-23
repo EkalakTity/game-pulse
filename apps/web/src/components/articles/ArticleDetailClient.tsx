@@ -122,9 +122,10 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
         {article.content && (
           <div className="rounded-xl border border-surface-border bg-surface-raised p-5">
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#6b6988]">Content</h2>
-            <div className="prose prose-invert prose-sm max-w-none text-[#a09ec0]">
-              <p className="whitespace-pre-wrap text-sm leading-relaxed">{article.content}</p>
-            </div>
+            <div
+              className="prose prose-invert prose-sm max-w-none text-[#a09ec0] [&_img]:rounded [&_img]:max-w-full [&_a]:text-brand-300 [&_figure]:my-3 [&_figcaption]:text-xs [&_figcaption]:text-[#6b6988]"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
           </div>
         )}
       </div>
