@@ -6,6 +6,7 @@ import { SocialAccountCard } from "./SocialAccountCard";
 import { SocialAccountForm } from "./SocialAccountForm";
 import { SocialPostsTable } from "./SocialPostsTable";
 import { PostComposer, type ArticleOption } from "./PostComposer";
+import { CommentDialog } from "./CommentDialog";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { socialAccountsApi, type SafeSocialAccount, type CreateAccountPayload } from "@/lib/api/socialAccounts";
 import { socialPostsApi } from "@/lib/api/socialPosts";
@@ -27,6 +28,7 @@ export function SocialClient({ initialAccounts, initialPosts, articles }: Props)
   const [editing, setEditing] = useState<SafeSocialAccount | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [commentTargetId, setCommentTargetId] = useState<string | null>(null);
 
   const activeAccounts = accounts.filter((a) => a.isActive);
 
@@ -74,11 +76,16 @@ export function SocialClient({ initialAccounts, initialPosts, articles }: Props)
     setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
   }, []);
 
-  const handlePostComment = useCallback(async (id: string) => {
-    await socialPostsApi.postComment(id);
+  const handlePostComment = useCallback((id: string) => {
+    setCommentTargetId(id);
+  }, []);
+
+  const handleCommentSubmit = useCallback(async (text: string) => {
+    if (!commentTargetId) return;
+    await socialPostsApi.postComment(commentTargetId, text);
     const fresh = await socialPostsApi.list();
     setPosts(fresh);
-  }, []);
+  }, [commentTargetId]);
 
   return (
     <>
@@ -169,6 +176,13 @@ export function SocialClient({ initialAccounts, initialPosts, articles }: Props)
           articles={articles}
           onCreated={handlePostCreated}
           onClose={() => setComposerOpen(false)}
+        />
+      )}
+
+      {commentTargetId && (
+        <CommentDialog
+          onSubmit={handleCommentSubmit}
+          onClose={() => setCommentTargetId(null)}
         />
       )}
     </>
