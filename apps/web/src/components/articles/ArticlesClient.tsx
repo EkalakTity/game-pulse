@@ -39,10 +39,12 @@ export function ArticlesClient({ sources, categories }: Props) {
   const [bulkAction, setBulkAction]   = useState<"ARCHIVE" | "CATEGORIZE" | null>(null);
   const [bulkCatIds, setBulkCatIds]   = useState<string[]>([]);
   const [bulkSaving, setBulkSaving]   = useState(false);
+  const [fetchError, setFetchError]   = useState<string | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const fetchArticles = useCallback(async (f: Filters, cursor?: string) => {
     setLoading(true);
+    setFetchError(null);
     try {
       const params = new URLSearchParams();
       if (f.status)     params.set("status", f.status);
@@ -53,7 +55,14 @@ export function ArticlesClient({ sources, categories }: Props) {
       params.set("limit", "20");
 
       const res  = await fetch(`/api/v1/articles?${params}`);
-      const json = await res.json() as { success: true; data: ArticleWithRelations[]; meta: { nextCursor: string | null; hasMore: boolean } };
+      const json = await res.json() as
+        | { success: true;  data: ArticleWithRelations[]; meta: { nextCursor: string | null; hasMore: boolean } }
+        | { success: false; error: { message: string } };
+
+      if (!json.success) {
+        setFetchError(json.error.message);
+        return;
+      }
 
       if (cursor) {
         setArticles((prev) => [...prev, ...json.data]);
@@ -63,6 +72,8 @@ export function ArticlesClient({ sources, categories }: Props) {
       }
       setNextCursor(json.meta.nextCursor);
       setHasMore(json.meta.hasMore);
+    } catch {
+      setFetchError("Failed to load articles.");
     } finally {
       setLoading(false);
     }
@@ -268,7 +279,14 @@ export function ArticlesClient({ sources, categories }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-border">
-            {articles.length === 0 && !loading && (
+            {fetchError && (
+              <tr>
+                <td colSpan={9} className="py-12 text-center text-sm text-[#ef4444]">
+                  {fetchError}
+                </td>
+              </tr>
+            )}
+            {!fetchError && articles.length === 0 && !loading && (
               <tr>
                 <td colSpan={9} className="py-12 text-center text-sm text-[#6b6988]">
                   No articles found.
