@@ -7,7 +7,7 @@ export const ingestQueue = new Queue(QUEUE_NAMES.INGEST, {
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: "exponential", delay: 5000 },
-    removeOnComplete: { count: 100 },
+    removeOnComplete: true,
     removeOnFail: { count: 200 },
   },
 });

@@ -17,6 +17,11 @@ export async function POST(req: NextRequest, { params }: Params) {
     const feedResult = await feedService.getFeed(params.id);
     if (!feedResult.success) return handleApiError(feedResult.error);
 
+    // Reset ERROR feeds to ACTIVE so the badge reflects the retry immediately
+    if (feedResult.data.status === "ERROR") {
+      await feedService.updateFeed(params.id, { status: "ACTIVE" });
+    }
+
     const queue = getIngestQueue();
     const job = await queue.add(
       "FETCH_FEED",
