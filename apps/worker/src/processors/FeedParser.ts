@@ -21,7 +21,7 @@ export class FeedParser {
       responseType: "text",
       maxRedirects: 5,
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; Feedfetcher-Google; +http://www.google.com/feedfetcher.html)",
+        "User-Agent": "Feedly/1.0 (+http://www.feedly.com/fetcher.html; like FeedFetcher-Google)",
         "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
         "Accept-Language": "en-US,en;q=0.9",
         "Cache-Control": "no-cache",

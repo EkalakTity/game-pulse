@@ -96,7 +96,13 @@ export function createIngestWorker(concurrency: number) {
           },
         });
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const axiosStatus = (error as { response?: { status?: number } })?.response?.status;
+        const rawMessage = error instanceof Error ? error.message : String(error);
+        const message = axiosStatus === 403
+          ? `HTTP 403 Forbidden — this site blocks automated access from cloud servers (Cloudflare IP block)`
+          : axiosStatus === 429
+          ? `HTTP 429 Too Many Requests — rate limited by the server`
+          : rawMessage;
 
         await prisma.feedSource.update({
           where: { id: feedSourceId },
