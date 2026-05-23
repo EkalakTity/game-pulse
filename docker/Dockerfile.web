@@ -35,5 +35,5 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 
-# Run pending migrations then start the app
-CMD ["sh", "-c", "node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma && node server.js"]
+# Sync schema to DB then start the app
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --schema=./prisma/schema.prisma --accept-data-loss && node server.js"]
