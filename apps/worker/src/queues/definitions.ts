@@ -79,3 +79,13 @@ export const videoQueue = new Queue(QUEUE_NAMES.VIDEO, {
     removeOnFail: { count: 50 },
   },
 });
+
+export const commentQueue = new Queue(QUEUE_NAMES.COMMENT, {
+  connection: redisConnection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: { type: "exponential", delay: 10000 },
+    removeOnComplete: { count: 50 },
+    removeOnFail: { count: 100 },
+  },
+});

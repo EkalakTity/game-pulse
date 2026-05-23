@@ -11,6 +11,7 @@ export const createSocialPostSchema = z.object({
     .datetime()
     .optional()
     .transform((v) => (v ? new Date(v) : undefined)),
+  adComment: z.string().max(2000).optional(),
 });
 
 export const socialPostListSchema = z.object({

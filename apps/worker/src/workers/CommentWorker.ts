@@ -6,11 +6,12 @@ import { FacebookAdapter } from "../adapters/FacebookAdapter";
 import { InstagramAdapter } from "../adapters/InstagramAdapter";
 import { TikTokAdapter } from "../adapters/TikTokAdapter";
 import { LineOAAdapter } from "../adapters/LineOAAdapter";
-import { createNotification } from "../lib/notify";
-import { buildJobFailedEmail } from "../lib/email";
-import { commentQueue } from "../queues/definitions";
 
-type PublishJob = { socialPostId: string };
+type CommentJob = { socialPostId: string };
+
+type CommentAdapter = {
+  postComment(postId: string, text: string, token: string): Promise<{ commentId: string }>;
+};
 
 function decryptToken(ciphertext: string): string {
   const { createDecipheriv } = require("crypto") as typeof import("crypto");
@@ -24,18 +25,17 @@ function decryptToken(ciphertext: string): string {
   return decipher.update(Buffer.from(dataB64, "base64")).toString("utf8") + decipher.final("utf8");
 }
 
-const adapters = {
+const adapters: Record<string, CommentAdapter> = {
   FACEBOOK: new FacebookAdapter(),
   INSTAGRAM: new InstagramAdapter(),
   TIKTOK: new TikTokAdapter(),
   LINE_OA: new LineOAAdapter(),
 };
 
-export function createPublishWorker(concurrency: number) {
-  return new Worker<PublishJob>(
-    QUEUE_NAMES.PUBLISH,
-    async (job: Job<PublishJob>) => {
-      const start = Date.now();
+export function createCommentWorker(concurrency: number = 3) {
+  return new Worker<CommentJob>(
+    QUEUE_NAMES.COMMENT,
+    async (job: Job<CommentJob>) => {
       const { socialPostId } = job.data;
 
       const post = await prisma.socialPost.findUnique({
@@ -44,49 +44,27 @@ export function createPublishWorker(concurrency: number) {
       });
 
       if (!post) throw new Error(`Social post ${socialPostId} not found`);
-      if (post.status === "CANCELLED" || post.status === "PUBLISHED") return;
-
-      await prisma.socialPost.update({ where: { id: socialPostId }, data: { status: "QUEUED" } });
+      if (!post.adComment) throw new Error(`Social post ${socialPostId} has no adComment set`);
+      if (!post.externalPostId) throw new Error(`Social post ${socialPostId} has no externalPostId — not yet published`);
 
       try {
         const accessToken = decryptToken(post.account.accessToken);
         const adapter = adapters[post.account.platform];
+        if (!adapter) throw new Error(`No adapter for platform ${post.account.platform}`);
 
-        const result = await adapter.publish(
-          post.caption ?? "",
-          post.hashtags,
-          post.mediaUrls,
-          post.account.accountId,
+        const result = await adapter.postComment(
+          post.externalPostId,
+          post.adComment,
           accessToken,
         );
 
         await prisma.socialPost.update({
           where: { id: socialPostId },
           data: {
-            status: "PUBLISHED",
-            publishedAt: new Date(),
-            externalPostId: result.externalPostId,
-            failureReason: null,
-          },
-        });
-
-        if (post.adComment) {
-          await prisma.socialPost.update({
-            where: { id: socialPostId },
-            data: { adCommentStatus: "PENDING" },
-          });
-          await commentQueue.add("POST_COMMENT", { socialPostId }, {
-            jobId: `comment-${socialPostId}`,
-          });
-        }
-
-        await prisma.jobLog.create({
-          data: {
-            jobType: "SOCIAL_PUBLISH",
-            jobId: job.id,
-            result: "SUCCESS",
-            socialPostId,
-            durationMs: Date.now() - start,
+            adCommentStatus: "POSTED",
+            adCommentPostedAt: new Date(),
+            adCommentId: result.commentId,
+            adCommentError: null,
           },
         });
       } catch (error) {
@@ -94,27 +72,11 @@ export function createPublishWorker(concurrency: number) {
 
         await prisma.socialPost.update({
           where: { id: socialPostId },
-          data: { status: "FAILED", failureReason: message },
-        });
-
-        await prisma.jobLog.create({
           data: {
-            jobType: "SOCIAL_PUBLISH",
-            jobId: job.id,
-            result: "FAILURE",
-            socialPostId,
-            message,
-            durationMs: Date.now() - start,
+            adCommentStatus: "FAILED",
+            adCommentError: message,
           },
         });
-
-        await createNotification(
-          "JOB_FAILED",
-          "Post Failed to Publish",
-          `Post to ${post.account.platform} (${post.account.accountName}) failed: ${message}`,
-          { socialPostId, platform: post.account.platform, accountName: post.account.accountName },
-          { email: buildJobFailedEmail(post.account.platform, post.account.accountName, message) },
-        );
 
         throw error;
       }

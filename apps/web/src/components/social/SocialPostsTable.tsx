@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw, XCircle } from "lucide-react";
+import { RefreshCw, XCircle, MessageSquare, CheckCircle2, XCircle as XCircleIcon, Clock } from "lucide-react";
 import type { SocialPostWithRelations } from "@/server/repositories/SocialPostRepository";
 import { PLATFORM_META } from "@/lib/platforms";
 
@@ -17,9 +17,10 @@ type Props = {
   posts: SocialPostWithRelations[];
   onCancel: (id: string) => void;
   onRetry: (id: string) => void;
+  onPostComment: (id: string) => void;
 };
 
-export function SocialPostsTable({ posts, onCancel, onRetry }: Props) {
+export function SocialPostsTable({ posts, onCancel, onRetry, onPostComment }: Props) {
   if (posts.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-[#2e2e3e] py-16 text-center">
@@ -38,6 +39,7 @@ export function SocialPostsTable({ posts, onCancel, onRetry }: Props) {
             <th className="px-4 py-3 text-left text-xs font-medium text-[#6b6988]">Caption</th>
             <th className="px-4 py-3 text-left text-xs font-medium text-[#6b6988]">Status</th>
             <th className="px-4 py-3 text-left text-xs font-medium text-[#6b6988]">Scheduled</th>
+            <th className="hidden px-4 py-3 text-left text-xs font-medium text-[#6b6988] sm:table-cell">Comment</th>
             <th className="px-4 py-3" />
           </tr>
         </thead>
@@ -77,6 +79,45 @@ export function SocialPostsTable({ posts, onCancel, onRetry }: Props) {
                   {post.scheduledAt
                     ? new Date(post.scheduledAt).toLocaleString("en-GB", { timeZone: "UTC", hour12: false })
                     : <span>—</span>}
+                </td>
+                <td className="hidden px-4 py-3 sm:table-cell">
+                  {post.status === "PUBLISHED" ? (
+                    post.adCommentStatus === "POSTED" ? (
+                      <span className="flex items-center gap-1 text-xs text-green-400" title="Ad comment posted">
+                        <CheckCircle2 size={13} />
+                        Posted
+                      </span>
+                    ) : post.adCommentStatus === "PENDING" ? (
+                      <span className="flex items-center gap-1 text-xs text-yellow-400" title="Ad comment queuing">
+                        <Clock size={13} className="animate-spin" />
+                        Queuing…
+                      </span>
+                    ) : post.adCommentStatus === "FAILED" ? (
+                      <button
+                        onClick={() => onPostComment(post.id)}
+                        title="Ad comment failed — click to retry"
+                        className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-red-400 hover:bg-[#2e2e3e] transition-colors"
+                      >
+                        <XCircleIcon size={13} />
+                        Failed
+                      </button>
+                    ) : post.adComment ? (
+                      <span className="flex items-center gap-1 text-xs text-amber-400" title="Ad comment set but not yet queued">
+                        <Clock size={13} />
+                        Pending
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => onPostComment(post.id)}
+                        title="Post ad comment"
+                        className="rounded p-1 text-[#6b6988] hover:bg-[#2e2e3e] hover:text-[#a09ec0] transition-colors"
+                      >
+                        <MessageSquare size={13} />
+                      </button>
+                    )
+                  ) : (
+                    <span className="text-xs text-[#6b6988]">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-1">

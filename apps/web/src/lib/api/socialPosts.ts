@@ -9,6 +9,7 @@ export type CreatePostPayload = {
   hashtags?: string[];
   mediaUrls?: string[];
   scheduledAt?: string;
+  adComment?: string;
 };
 
 export const socialPostsApi = {
@@ -27,4 +28,6 @@ export const socialPostsApi = {
     apiClient.post<SocialPostWithRelations>(`/social-posts/${id}/cancel`, {}),
   retry: (id: string) =>
     apiClient.post<SocialPostWithRelations>(`/social-posts/${id}/retry`, {}),
+  postComment: (id: string, text?: string) =>
+    apiClient.post<{ success: boolean }>(`/social-posts/${id}/comment`, text ? { text } : {}),
 };

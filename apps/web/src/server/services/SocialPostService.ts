@@ -11,6 +11,7 @@ type CreatePostInput = {
   mediaUrls?: string[];
   scheduledAt?: Date;
   createdById: string;
+  adComment?: string;
 };
 
 export class SocialPostService {
@@ -49,6 +50,7 @@ export class SocialPostService {
       mediaUrls: input.mediaUrls ?? [],
       scheduledAt: input.scheduledAt,
       status,
+      ...(input.adComment && { adComment: input.adComment }),
       account: { connect: { id: input.accountId } },
       ...(input.articleId && { article: { connect: { id: input.articleId } } }),
       createdBy: { connect: { id: input.createdById } },

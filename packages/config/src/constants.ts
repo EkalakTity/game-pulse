@@ -7,6 +7,7 @@ export const QUEUE_NAMES = {
   WEBHOOK: "webhook-queue",
   TRANSLATE: "translate-queue",
   VIDEO: "video-queue",
+  COMMENT: "comment-queue",
 } as const;
 
 export const JOB_TYPES = {
@@ -18,6 +19,7 @@ export const JOB_TYPES = {
   DELIVER_WEBHOOK: "DELIVER_WEBHOOK",
   TRANSLATE_ARTICLE: "TRANSLATE_ARTICLE",
   GENERATE_VIDEO: "GENERATE_VIDEO",
+  POST_COMMENT: "POST_COMMENT",
 } as const;
 
 export const SOCIAL_PLATFORM_LIMITS = {

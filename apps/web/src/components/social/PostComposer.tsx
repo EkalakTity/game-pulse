@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Hash, Calendar, Send, Sparkles, CheckCheck } from "lucide-react";
+import { X, Hash, Calendar, Send, Sparkles, CheckCheck, MessageSquare, ChevronDown } from "lucide-react";
 import type { SafeSocialAccount } from "@/lib/api/socialAccounts";
 import type { SocialPostWithRelations } from "@/server/repositories/SocialPostRepository";
 import { PLATFORM_META } from "@/lib/platforms";
@@ -25,7 +25,6 @@ const PLATFORM_KEY_MAP: Record<string, keyof AiSuggestion["captions"]> = {
 };
 
 export function PostComposer({ accounts, articles, onCreated, onClose }: Props) {
-  console.log("[PostComposer] mount — articles available:", articles.length, articles.map(a => a.id));
   const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
   const [articleId, setArticleId] = useState("");
   const [caption, setCaption] = useState("");
@@ -37,6 +36,8 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<AiSuggestion | null>(null);
+  const [adComment, setAdComment] = useState("");
+  const [adCommentOpen, setAdCommentOpen] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -111,8 +112,8 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
         hashtags,
         mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
         scheduledAt: scheduleMode ? new Date(scheduledAt).toISOString() : undefined,
+        ...(adComment.trim() && { adComment: adComment.trim() }),
       };
-      console.log("[PostComposer] submitting payload:", JSON.stringify(payload));
       const post = await socialPostsApi.create(payload);
       onCreated(post);
     } catch (err) {
@@ -152,13 +153,6 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
             </select>
           </div>
 
-          {/* Debug panel */}
-          <div className="rounded-md bg-yellow-900/30 border border-yellow-600/40 px-3 py-2 text-xs text-yellow-300 font-mono space-y-0.5">
-            <div>articles loaded: <strong>{articles.length}</strong></div>
-            <div>articleId state: <strong>{articleId || "(empty)"}</strong></div>
-            <div>mediaUrls: <strong>{mediaUrls.length > 0 ? mediaUrls[0]?.slice(0, 40) + "…" : "(none)"}</strong></div>
-          </div>
-
           {/* Article picker + AI button */}
           <div>
             <label className="mb-1.5 block text-xs font-medium text-[#a09ec0]">
@@ -168,7 +162,6 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
               <select
                 value={articleId}
                 onChange={(e) => {
-                console.log("[PostComposer] article selected:", e.target.value || "(none)");
                 setArticleId(e.target.value);
                 setCaption("");
                 setAiSuggestion(null);
@@ -298,6 +291,41 @@ export function PostComposer({ accounts, articles, onCreated, onClose }: Props) 
                     </button>
                   </span>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Ad Comment */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setAdCommentOpen((v) => !v)}
+              className={`flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition-colors ${
+                adCommentOpen
+                  ? "border-[#6d28d9] bg-[#6d28d9]/20 text-[#8b5cf6]"
+                  : "border-[#2e2e3e] text-[#a09ec0] hover:bg-[#222230]"
+              }`}
+            >
+              <MessageSquare size={13} />
+              Ad Comment
+              <ChevronDown
+                size={12}
+                className={`ml-auto transition-transform ${adCommentOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {adCommentOpen && (
+              <div className="mt-2">
+                <textarea
+                  value={adComment}
+                  onChange={(e) => setAdComment(e.target.value)}
+                  maxLength={2000}
+                  rows={3}
+                  placeholder="Write an ad comment to auto-post after publishing…"
+                  className="w-full resize-none rounded-md border border-[#2e2e3e] bg-[#111118] px-3 py-2 text-sm text-[#f1f0ff] placeholder-[#6b6988] focus:border-[#8b5cf6] focus:outline-none"
+                />
+                <p className="mt-1 text-right text-xs text-[#6b6988]">
+                  {2000 - adComment.length} left
+                </p>
               </div>
             )}
           </div>

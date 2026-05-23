@@ -74,6 +74,12 @@ export function SocialClient({ initialAccounts, initialPosts, articles }: Props)
     setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
   }, []);
 
+  const handlePostComment = useCallback(async (id: string) => {
+    await socialPostsApi.postComment(id);
+    const fresh = await socialPostsApi.list();
+    setPosts(fresh);
+  }, []);
+
   return (
     <>
       <div className="flex items-center justify-between">
@@ -135,7 +141,7 @@ export function SocialClient({ initialAccounts, initialPosts, articles }: Props)
           </div>
         )
       ) : (
-        <SocialPostsTable posts={posts} onCancel={handleCancel} onRetry={handleRetry} />
+        <SocialPostsTable posts={posts} onCancel={handleCancel} onRetry={handleRetry} onPostComment={handlePostComment} />
       )}
 
       {(formOpen || editing) && (

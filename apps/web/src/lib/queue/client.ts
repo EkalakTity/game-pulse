@@ -8,6 +8,7 @@ let _publishQueue: Queue | null = null;
 let _webhookQueue: Queue | null = null;
 let _translateQueue: Queue | null = null;
 let _videoQueue: Queue | null = null;
+let _commentQueue: Queue | null = null;
 
 function getRedis(): Redis {
   if (!_redis) {
@@ -66,4 +67,11 @@ export function getVideoQueue(): Queue {
     _videoQueue = new Queue(QUEUE_NAMES.VIDEO, { connection: getRedis() });
   }
   return _videoQueue;
+}
+
+export function getCommentQueue(): Queue {
+  if (!_commentQueue) {
+    _commentQueue = new Queue(QUEUE_NAMES.COMMENT, { connection: getRedis() });
+  }
+  return _commentQueue;
 }

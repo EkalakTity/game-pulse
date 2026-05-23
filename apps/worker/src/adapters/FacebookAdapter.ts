@@ -61,4 +61,11 @@ export class FacebookAdapter {
 
     return { externalPostId: postId };
   }
+
+  async postComment(externalPostId: string, commentText: string, accessToken: string): Promise<{ commentId: string }> {
+    const res = await axios.post(`${GRAPH_BASE}/${externalPostId}/comments`, null, {
+      params: { message: commentText, access_token: accessToken },
+    }).catch(extractFbError);
+    return { commentId: res.data.id };
+  }
 }

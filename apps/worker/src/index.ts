@@ -7,6 +7,7 @@ import { createAIWorker } from "./workers/AIWorker";
 import { createWebhookWorker } from "./workers/WebhookWorker";
 import { createTranslateWorker } from "./workers/TranslateWorker";
 import { createVideoWorker } from "./workers/VideoWorker";
+import { createCommentWorker } from "./workers/CommentWorker";
 import { CronScheduler } from "./scheduler/CronScheduler";
 import { redisConnection } from "./queues/connection";
 import { startBullBoard } from "./bullboard";
@@ -24,6 +25,7 @@ async function main() {
   const webhookWorker   = createWebhookWorker(5);
   const translateWorker = createTranslateWorker(2);
   const videoWorker     = createVideoWorker(2);
+  const commentWorker   = createCommentWorker(3);
   const scheduler       = new CronScheduler();
 
   ingestWorker.on("completed", (job) => console.log(`[IngestWorker] Job ${job.id} completed`));
@@ -55,6 +57,9 @@ async function main() {
     videoWorker.on("failed", (job, err) => console.error(`[VideoWorker] Job ${job?.id} failed:`, err.message));
   }
 
+  commentWorker.on("completed", (job) => console.log(`[CommentWorker] Job ${job.id} completed`));
+  commentWorker.on("failed", (job, err) => console.error(`[CommentWorker] Job ${job?.id} failed:`, err.message));
+
   scheduler.start();
 
   const shutdown = async () => {
@@ -68,6 +73,7 @@ async function main() {
     if (aiWorker) await aiWorker.close();
     if (translateWorker) await translateWorker.close();
     if (videoWorker) await videoWorker.close();
+    await commentWorker.close();
     await redisConnection.quit();
     process.exit(0);
   };

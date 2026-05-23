@@ -242,6 +242,12 @@ model SocialPost {
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
 
+  adComment         String?   @map("ad_comment") @db.Text
+  adCommentStatus   String?   @map("ad_comment_status")
+  adCommentPostedAt DateTime? @map("ad_comment_posted_at")
+  adCommentError    String?   @map("ad_comment_error") @db.Text
+  adCommentId       String?   @map("ad_comment_id")
+
   article    Article?              @relation(fields: [articleId], references: [id])
   account    SocialAccount         @relation(fields: [accountId], references: [id], onDelete: Cascade)
   createdBy  User                  @relation(fields: [createdById], references: [id])
