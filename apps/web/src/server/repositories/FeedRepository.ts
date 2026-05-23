@@ -11,7 +11,7 @@ export class FeedRepository {
     const take = Math.min(limit, 100) + 1;
 
     const items = await prisma.feedSource.findMany({
-      where: status ? { status } : undefined,
+      where: { deletedAt: null, ...(status ? { status } : {}) },
       take,
       ...(cursor && { cursor: { id: cursor }, skip: 1 }),
       orderBy: { name: "asc" },
@@ -28,7 +28,7 @@ export class FeedRepository {
   }
 
   async findAll(): Promise<FeedSource[]> {
-    return prisma.feedSource.findMany({ orderBy: { name: "asc" } });
+    return prisma.feedSource.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } });
   }
 
   async findById(id: string): Promise<FeedSource | null> {
@@ -66,6 +66,6 @@ export class FeedRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.feedSource.update({ where: { id }, data: { status: "PAUSED" } });
+    await prisma.feedSource.update({ where: { id }, data: { deletedAt: new Date(), status: "PAUSED" } });
   }
 }

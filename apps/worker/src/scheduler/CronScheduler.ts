@@ -57,6 +57,7 @@ export class CronScheduler {
   private async enqueueDueFeeds(): Promise<void> {
     const sources = await prisma.feedSource.findMany({
       where: {
+        deletedAt: null,
         status: { in: ["ACTIVE", "ERROR"] },
         OR: [
           { lastFetchedAt: null, lastErrorAt: null },
@@ -80,7 +81,7 @@ export class CronScheduler {
 
     await Promise.all(
       due.map((s) =>
-        ingestQueue.add("FETCH_FEED", { feedSourceId: s.id }, { jobId: `ingest-${s.id}` }),
+        ingestQueue.add("FETCH_FEED", { feedSourceId: s.id }),
       ),
     );
 
