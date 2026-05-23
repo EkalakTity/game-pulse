@@ -5,7 +5,7 @@ import { FeedParser } from "../processors/FeedParser";
 import { DuplicateDetector } from "../processors/DuplicateDetector";
 import { CategoryClassifier } from "../processors/CategoryClassifier";
 import { redisConnection } from "../queues/connection";
-import { mediaQueue } from "../queues/definitions";
+import { mediaQueue, aiQueue } from "../queues/definitions";
 
 type FetchFeedJob = { feedSourceId: string };
 
@@ -72,6 +72,10 @@ export function createIngestWorker(concurrency: number) {
               imageUrl: article.thumbnailUrl,
             });
           }
+
+          await aiQueue.add("PROCESS_AI", { articleId: created.id }, {
+            jobId: `ai-${created.id}`,
+          });
 
           newCount++;
         }

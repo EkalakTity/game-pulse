@@ -144,6 +144,8 @@ model Article {
   sourceId      String        @map("source_id")
 
   aiSummary     String?   @map("ai_summary") @db.Text
+  aiScore       Int?      @map("ai_score")
+  aiScoreReason String?   @map("ai_score_reason") @db.Text
   aiHashtags    String[]  @map("ai_hashtags")
   aiCaption     Json?     @map("ai_caption")
   aiProcessedAt DateTime? @map("ai_processed_at")
