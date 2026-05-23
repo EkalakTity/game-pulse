@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw, XCircle, MessageSquare, CheckCircle2, XCircle as XCircleIcon, Clock } from "lucide-react";
+import { RefreshCw, XCircle, MessageSquare, CheckCircle2, XCircle as XCircleIcon, Clock, RotateCcw } from "lucide-react";
 import type { SocialPostWithRelations } from "@/server/repositories/SocialPostRepository";
 import { PLATFORM_META } from "@/lib/platforms";
 
@@ -83,10 +83,19 @@ export function SocialPostsTable({ posts, onCancel, onRetry, onPostComment }: Pr
                 <td className="hidden px-4 py-3 sm:table-cell">
                   {post.status === "PUBLISHED" ? (
                     post.adCommentStatus === "POSTED" ? (
-                      <span className="flex items-center gap-1 text-xs text-green-400" title="Ad comment posted">
-                        <CheckCircle2 size={13} />
-                        Posted
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="flex items-center gap-1 text-xs text-green-400">
+                          <CheckCircle2 size={13} />
+                          Posted
+                        </span>
+                        <button
+                          onClick={() => onPostComment(post.id)}
+                          title="Post same comment again"
+                          className="rounded p-0.5 text-[#6b6988] hover:bg-[#2e2e3e] hover:text-[#a09ec0] transition-colors"
+                        >
+                          <RotateCcw size={11} />
+                        </button>
+                      </div>
                     ) : post.adCommentStatus === "PENDING" ? (
                       <span className="flex items-center gap-1 text-xs text-yellow-400" title="Ad comment queuing">
                         <Clock size={13} className="animate-spin" />
