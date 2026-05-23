@@ -57,23 +57,25 @@ export class CronScheduler {
   private async enqueueDueFeeds(): Promise<void> {
     const sources = await prisma.feedSource.findMany({
       where: {
-        status: "ACTIVE",
+        status: { in: ["ACTIVE", "ERROR"] },
         OR: [
-          { lastFetchedAt: null },
-          {
-            lastFetchedAt: {
-              lte: new Date(Date.now() - 60 * 1000),
-            },
-          },
+          { lastFetchedAt: null, lastErrorAt: null },
+          { lastFetchedAt: { lte: new Date(Date.now() - 60 * 1000) } },
+          { lastErrorAt: { lte: new Date(Date.now() - 60 * 1000) } },
         ],
       },
-      select: { id: true, fetchIntervalMin: true, lastFetchedAt: true },
+      select: { id: true, fetchIntervalMin: true, lastFetchedAt: true, lastErrorAt: true, status: true },
     });
 
+    const now = Date.now();
     const due = sources.filter((s) => {
-      if (!s.lastFetchedAt) return true;
+      // ERROR feeds: use lastErrorAt as the last-attempt timestamp for backoff
+      const lastAttempt = s.status === "ERROR"
+        ? (s.lastErrorAt ?? s.lastFetchedAt)
+        : s.lastFetchedAt;
+      if (!lastAttempt) return true;
       const intervalMs = s.fetchIntervalMin * 60 * 1000;
-      return Date.now() - s.lastFetchedAt.getTime() >= intervalMs;
+      return now - lastAttempt.getTime() >= intervalMs;
     });
 
     await Promise.all(

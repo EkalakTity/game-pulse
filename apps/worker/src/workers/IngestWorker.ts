@@ -21,7 +21,7 @@ export function createIngestWorker(concurrency: number) {
       const { feedSourceId } = job.data;
 
       const source = await prisma.feedSource.findUnique({ where: { id: feedSourceId } });
-      if (!source || source.status !== "ACTIVE") return;
+      if (!source || source.status === "PAUSED") return;
 
       let newCount = 0;
       let dupCount = 0;
