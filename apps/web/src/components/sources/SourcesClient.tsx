@@ -17,6 +17,12 @@ export function SourcesClient({ initialSources }: Props) {
   const [editing, setEditing] = useState<FeedSource | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+
+  const showToast = useCallback((msg: string, ok: boolean) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 4000);
+  }, []);
 
   // Poll every 30 s so lastFetchedAt / articleCount stay current while the worker runs
   useEffect(() => {
@@ -36,15 +42,19 @@ export function SourcesClient({ initialSources }: Props) {
   );
 
   const handleRefresh = useCallback(async (id: string) => {
-    await apiClient.post(`/feeds/${id}/refresh`, {});
-    // Re-fetch after 5 s so the card reflects the updated lastFetchedAt once the job finishes
-    setTimeout(async () => {
-      try {
-        const fresh = await apiClient.get<FeedSource[]>("/feeds");
-        setSources(fresh);
-      } catch {}
-    }, 5_000);
-  }, []);
+    try {
+      await apiClient.post(`/feeds/${id}/refresh`, {});
+      showToast("Refresh queued — checking for new articles…", true);
+      setTimeout(async () => {
+        try {
+          const fresh = await apiClient.get<FeedSource[]>("/feeds");
+          setSources(fresh);
+        } catch {}
+      }, 8_000);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to queue refresh", false);
+    }
+  }, [showToast]);
 
   const handleTogglePause = useCallback(async (source: FeedSource) => {
     const nextStatus = source.status === "PAUSED" ? "ACTIVE" : "PAUSED";
@@ -105,6 +115,17 @@ export function SourcesClient({ initialSources }: Props) {
           <Plus size={16} /> Add source
         </button>
       </div>
+
+      {toast && (
+        <div className={`rounded-lg border px-4 py-2 text-sm flex items-center justify-between ${
+          toast.ok
+            ? "bg-[#22c55e]/10 border-[#22c55e]/20 text-[#22c55e]"
+            : "bg-red-500/10 border-red-500/20 text-red-400"
+        }`}>
+          <span>{toast.msg}</span>
+          <button onClick={() => setToast(null)} className="ml-4 opacity-60 hover:opacity-100">✕</button>
+        </div>
+      )}
 
       {deleteError && (
         <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400 flex items-center justify-between">

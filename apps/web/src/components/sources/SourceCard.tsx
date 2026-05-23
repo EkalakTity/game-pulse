@@ -76,9 +76,11 @@ export function SourceCard({ source, onEdit, onRefresh, onTogglePause, onDelete 
         </div>
       </div>
 
-      {source.description && (
+      {source.status === "ERROR" && source.lastError ? (
+        <p className="line-clamp-2 text-xs text-[#ef4444]/80" title={source.lastError}>{source.lastError}</p>
+      ) : source.description ? (
         <p className="line-clamp-2 text-xs text-[#a09ec0]">{source.description}</p>
-      )}
+      ) : null}
 
       <div className="flex items-center justify-between">
         <SourceHealthBadge lastFetchedAt={source.lastFetchedAt} status={source.status} />
