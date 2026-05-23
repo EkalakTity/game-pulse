@@ -16,6 +16,7 @@ export function SourcesClient({ initialSources }: Props) {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<FeedSource | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Poll every 30 s so lastFetchedAt / articleCount stay current while the worker runs
   useEffect(() => {
@@ -74,9 +75,14 @@ export function SourcesClient({ initialSources }: Props) {
 
   const handleDelete = useCallback(async () => {
     if (!deleteTarget) return;
-    await apiClient.delete(`/feeds/${deleteTarget}`);
-    setSources((prev) => prev.filter((s) => s.id !== deleteTarget));
-    setDeleteTarget(null);
+    try {
+      await apiClient.delete(`/feeds/${deleteTarget}`);
+      setSources((prev) => prev.filter((s) => s.id !== deleteTarget));
+      setDeleteTarget(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete feed");
+      setDeleteTarget(null);
+    }
   }, [deleteTarget]);
 
   return (
@@ -99,6 +105,13 @@ export function SourcesClient({ initialSources }: Props) {
           <Plus size={16} /> Add source
         </button>
       </div>
+
+      {deleteError && (
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-400 flex items-center justify-between">
+          <span>{deleteError}</span>
+          <button onClick={() => setDeleteError(null)} className="ml-4 text-red-400 hover:text-red-300">✕</button>
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed border-surface-border py-16 text-center">

@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = { title: "Feed Sources" };
 
 export default async function SourcesPage() {
-  const sources = await prisma.feedSource.findMany({ orderBy: { name: "asc" } });
+  const sources = await prisma.feedSource.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } });
 
   const stats = {
     total: sources.length,
