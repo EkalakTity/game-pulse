@@ -262,6 +262,7 @@ export function ArticlesClient({ sources, categories }: Props) {
               <th className="px-4 py-3 font-medium hidden md:table-cell">Source</th>
               <th className="px-4 py-3 font-medium hidden lg:table-cell">Categories</th>
               <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium hidden md:table-cell">Score</th>
               <th className="px-4 py-3 font-medium hidden sm:table-cell">Published</th>
               <th className="px-4 py-3 font-medium w-16" />
             </tr>
@@ -269,7 +270,7 @@ export function ArticlesClient({ sources, categories }: Props) {
           <tbody className="divide-y divide-surface-border">
             {articles.length === 0 && !loading && (
               <tr>
-                <td colSpan={8} className="py-12 text-center text-sm text-[#6b6988]">
+                <td colSpan={9} className="py-12 text-center text-sm text-[#6b6988]">
                   No articles found.
                 </td>
               </tr>
@@ -313,6 +314,9 @@ export function ArticlesClient({ sources, categories }: Props) {
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={article.status as "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DUPLICATE"} />
+                </td>
+                <td className="px-4 py-3 hidden md:table-cell">
+                  <AiScoreBadge score={article.aiScore} reason={article.aiScoreReason} />
                 </td>
                 <td className="px-4 py-3 hidden sm:table-cell">
                   <span className="text-xs text-[#6b6988]">
@@ -381,6 +385,26 @@ function ThumbnailCell({ article }: { article: ArticleWithRelations }) {
     <div className="flex h-9 w-9 items-center justify-center rounded bg-surface-border">
       <ImageIcon size={14} className="text-[#6b6988]" />
     </div>
+  );
+}
+
+function AiScoreBadge({ score, reason }: { score: number | null; reason: string | null }) {
+  if (score === null) {
+    return <span className="text-xs text-[#6b6988]">—</span>;
+  }
+
+  const color =
+    score >= 80 ? "text-[#22c55e]" :
+    score >= 60 ? "text-[#f59e0b]" :
+                  "text-[#ef4444]";
+
+  return (
+    <span
+      className={cn("text-xs font-semibold tabular-nums cursor-default", color)}
+      title={reason ?? undefined}
+    >
+      {score}
+    </span>
   );
 }
 
