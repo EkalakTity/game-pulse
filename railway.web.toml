@@ -3,6 +3,6 @@ builder = "nixpacks"
 buildCommand = "DATABASE_URL=postgresql://dummy:dummy@localhost/dummy npx prisma generate --schema=packages/database/prisma/schema.prisma && SKIP_ENV_VALIDATION=1 npm run build --workspace=apps/web"
 
 [deploy]
-startCommand = "npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma && npx tsx packages/database/prisma/seed.ts && npm run start --workspace=apps/web"
+startCommand = "npx prisma db push --schema=packages/database/prisma/schema.prisma --accept-data-loss && npx tsx packages/database/prisma/seed.ts && npm run start --workspace=apps/web"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
