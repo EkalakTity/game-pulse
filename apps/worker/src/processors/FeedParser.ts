@@ -12,14 +12,22 @@ export type ParsedArticle = {
   thumbnailUrl?: string;
 };
 
-const parser = new RssParser({
-  timeout: 10000,
-  headers: { "User-Agent": "GamePulseHub/1.0 RSS Reader" },
-});
+const parser = new RssParser({ timeout: 15000 });
 
 export class FeedParser {
   async fetch(feedUrl: string): Promise<ParsedArticle[]> {
-    const feed = await parser.parseURL(feedUrl);
+    const response = await axios.get<string>(feedUrl, {
+      timeout: 15000,
+      responseType: "text",
+      maxRedirects: 5,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; Feedfetcher-Google; +http://www.google.com/feedfetcher.html)",
+        "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Cache-Control": "no-cache",
+      },
+    });
+    const feed = await parser.parseString(response.data);
 
     return feed.items
       .filter((item): item is typeof item & { link: string; title: string } =>
