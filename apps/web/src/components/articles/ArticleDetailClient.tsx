@@ -142,7 +142,7 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
       <div className="space-y-4">
         {/* Feedback toast */}
         {feedback && (
-          <div className={`rounded-lg px-4 py-2 text-sm border ${
+          <div className={`rounded-lg py-2 text-sm border ${
             feedback.startsWith("Failed")
               ? "bg-red-500/10 border-red-500/20 text-red-400"
               : "bg-[#22c55e]/10 border-[#22c55e]/20 text-[#22c55e]"
