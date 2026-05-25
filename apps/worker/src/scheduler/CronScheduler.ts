@@ -66,7 +66,7 @@ export class CronScheduler {
       where: { aiProcessedAt: null, createdAt: { lte: threshold } },
       select: { id: true },
       orderBy: { createdAt: "asc" },
-      take: 30,
+      take: 100,
     });
 
     for (const article of unprocessed) {

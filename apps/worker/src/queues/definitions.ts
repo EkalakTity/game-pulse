@@ -43,7 +43,7 @@ export const mediaQueue = new Queue(QUEUE_NAMES.MEDIA, {
 export const aiQueue = new Queue(QUEUE_NAMES.AI_PROCESS, {
   connection: redisConnection,
   defaultJobOptions: {
-    attempts: 2,
+    attempts: 3,
     backoff: { type: "exponential", delay: 15000 },
     removeOnComplete: { count: 200 },
     removeOnFail: { count: 100 },

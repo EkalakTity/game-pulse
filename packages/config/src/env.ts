@@ -17,7 +17,7 @@ const envSchema = z.object({
   INGEST_WORKER_CONCURRENCY: z.coerce.number().default(5),
   PUBLISH_WORKER_CONCURRENCY: z.coerce.number().default(2),
   MEDIA_WORKER_CONCURRENCY: z.coerce.number().default(10),
-  AI_WORKER_CONCURRENCY: z.coerce.number().default(2),
+  AI_WORKER_CONCURRENCY: z.coerce.number().default(5),
   LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error"]).default("info"),
 });
 
