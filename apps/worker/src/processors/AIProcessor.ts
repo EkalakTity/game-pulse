@@ -53,7 +53,7 @@ export class AIProcessor {
 
     const message = await this.client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1024,
+      max_tokens: 2048,
       system: [
         {
           type: "text",
@@ -94,11 +94,14 @@ export class AIProcessor {
       ],
     });
 
-    const text =
+    const raw =
       message.content[0]?.type === "text" ? message.content[0].text.trim() : "";
 
+    // Strip markdown code fences if Claude wraps the response
+    const text = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error(`No JSON found in AI response: ${text.slice(0, 200)}`);
+    if (!jsonMatch) throw new Error(`No JSON found in AI response: ${raw.slice(0, 300)}`);
 
     const parsed = JSON.parse(jsonMatch[0]) as Partial<AiResult>;
 
