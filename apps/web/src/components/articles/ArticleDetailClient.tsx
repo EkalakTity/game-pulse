@@ -110,7 +110,15 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
           );
         })()}
 
-        {/* Summary */}
+        {/* AI Summary (Thai) */}
+        {article.aiSummary && (
+          <div className="rounded-xl border border-brand-400/30 bg-brand-400/5 p-5">
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-300">สรุปข่าว (AI)</h2>
+            <p className="text-sm leading-relaxed text-[#f1f0ff]">{article.aiSummary}</p>
+          </div>
+        )}
+
+        {/* Original Summary */}
         {article.summary && (
           <div className="rounded-xl border border-surface-border bg-surface-raised p-5">
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#6b6988]">Summary</h2>
@@ -163,6 +171,26 @@ export function ArticleDetailClient({ article, allCategories }: Props) {
             </div>
           )}
         </div>
+
+        {/* AI Score card */}
+        {article.aiScore !== null && (
+          <div className="rounded-xl border border-surface-border bg-surface-raised p-4 space-y-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#6b6988]">คะแนนข่าว</h2>
+            <div className="flex items-center gap-3">
+              <span className={`text-3xl font-bold tabular-nums ${
+                article.aiScore >= 80 ? "text-[#22c55e]" :
+                article.aiScore >= 60 ? "text-[#f59e0b]" :
+                                        "text-[#ef4444]"
+              }`}>
+                {article.aiScore}
+              </span>
+              <span className="text-xs text-[#6b6988]">/ 100</span>
+            </div>
+            {article.aiScoreReason && (
+              <p className="text-xs text-[#a09ec0] leading-relaxed">{article.aiScoreReason}</p>
+            )}
+          </div>
+        )}
 
         {/* Source card */}
         <div className="rounded-xl border border-surface-border bg-surface-raised p-4 space-y-2">

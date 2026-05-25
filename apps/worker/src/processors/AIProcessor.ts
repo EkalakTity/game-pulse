@@ -22,13 +22,13 @@ const PLATFORM_CAPTION_LIMITS: Record<keyof AiCaptions, number> = {
   line: 300,
 };
 
-const SYSTEM_PROMPT = `You are a gaming news analyst and social media content writer. Given a gaming news article you will:
-1. Write a concise 2-3 sentence summary
-2. Score the article 0-100 based on relevance to provided game tags, content quality, news impact, and timeliness
-3. Generate platform-appropriate social media captions
-4. Generate relevant hashtags
+const SYSTEM_PROMPT = `คุณคือบรรณาธิการข่าวเกมภาษาไทย มีหน้าที่วิเคราะห์ข่าวเกมและเขียนเนื้อหาสำหรับนักเล่นเกมชาวไทย เมื่อได้รับข้อมูลบทความข่าวเกม ให้:
+1. เขียนสรุปข่าวภาษาไทย 2-3 ประโยคอย่างกระชับและน่าอ่าน
+2. ให้คะแนนข่าว 0-100 โดยคำนึงถึงความเกี่ยวข้องกับแท็กเกม คุณภาพเนื้อหา ผลกระทบต่อวงการเกม และความทันเหตุการณ์
+3. เขียน caption ภาษาไทยสำหรับแต่ละแพลตฟอร์มโซเชียลมีเดีย
+4. สร้าง hashtag ภาษาอังกฤษที่เกี่ยวข้อง
 
-You MUST respond with a single valid JSON object and nothing else — no markdown fences, no explanation.`;
+คุณต้องตอบด้วย JSON object ที่ถูกต้องเพียงอย่างเดียว — ไม่มี markdown fence ไม่มีคำอธิบายเพิ่มเติม`;
 
 export class AIProcessor {
   private client: Anthropic;
@@ -64,30 +64,32 @@ export class AIProcessor {
       messages: [
         {
           role: "user",
-          content: `Game Tags: ${gameTags.length > 0 ? gameTags.join(", ") : "none"}
-Published: ${hoursAgo !== null ? `${hoursAgo} hour(s) ago` : "unknown"}
-Title: ${title}
-Summary: ${summary ?? "No summary available."}
+          content: `แท็กเกม: ${gameTags.length > 0 ? gameTags.join(", ") : "ไม่ระบุ"}
+เผยแพร่เมื่อ: ${hoursAgo !== null ? `${hoursAgo} ชั่วโมงที่แล้ว` : "ไม่ทราบ"}
+หัวข้อ: ${title}
+เนื้อหาย่อ: ${summary ?? "ไม่มีเนื้อหาย่อ"}
 
-Respond with exactly this JSON structure:
+ตอบด้วย JSON structure นี้เท่านั้น:
 {
-  "summary": "concise 2-3 sentence summary of the article",
+  "summary": "สรุปข่าวภาษาไทย 2-3 ประโยค กระชับและน่าอ่าน",
   "score": 85,
-  "scoreReason": "brief reason for the score covering tag relevance, quality, impact, and timeliness",
+  "scoreReason": "เหตุผลภาษาไทยสั้น ๆ สำหรับคะแนนนี้ ครอบคลุมความเกี่ยวข้อง คุณภาพ ผลกระทบ และความทันเหตุการณ์",
   "captions": {
-    "fb": "Facebook caption (conversational, 2-3 sentences)",
-    "ig": "Instagram caption (punchy, emoji-friendly, 1-2 sentences)",
-    "tiktok": "TikTok caption (very short, hook-style, high energy)",
-    "line": "LINE OA caption (friendly, informative)"
+    "fb": "caption Facebook ภาษาไทย บทสนทนา 2-3 ประโยค",
+    "ig": "caption Instagram ภาษาไทย กระชับ ใส่ emoji ได้ 1-2 ประโยค",
+    "tiktok": "caption TikTok ภาษาไทย สั้นมาก ดึงดูดสายตา มีพลัง",
+    "line": "caption LINE OA ภาษาไทย เป็นมิตร ให้ข้อมูล"
   },
   "hashtags": ["gaming", "tag2", "tag3", "tag4", "tag5"]
 }
 
-Scoring criteria (0-100):
-- Relevance to game tags (0-40): how closely the article relates to ${gameTags.length > 0 ? gameTags.join(", ") : "general gaming"}
-- Content quality & credibility (0-30): depth, sourcing, writing quality
-- News impact (0-20): significance to the gaming community
-- Timeliness (0-10): ${hoursAgo !== null ? `published ${hoursAgo}h ago` : "unknown publish time"}`,
+เกณฑ์การให้คะแนน (0-100):
+- ความเกี่ยวข้องกับแท็กเกม (0-40): ข่าวนี้เกี่ยวข้องกับ ${gameTags.length > 0 ? gameTags.join(", ") : "เกมทั่วไป"} มากแค่ไหน
+- คุณภาพและความน่าเชื่อถือ (0-30): ความลึก แหล่งข้อมูล คุณภาพการเขียน
+- ผลกระทบต่อวงการเกม (0-20): ความสำคัญต่อชุมชนนักเล่นเกม
+- ความทันเหตุการณ์ (0-10): ${hoursAgo !== null ? `เผยแพร่เมื่อ ${hoursAgo} ชั่วโมงที่แล้ว` : "ไม่ทราบเวลาเผยแพร่"}
+
+หมายเหตุ: hashtags ต้องเป็นภาษาอังกฤษเท่านั้น ไม่ต้องแปลเป็นไทย`,
         },
       ],
     });
