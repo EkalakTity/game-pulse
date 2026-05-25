@@ -53,7 +53,7 @@ export class AIProcessor {
 
     const message = await this.client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: [
         {
           type: "text",
@@ -93,6 +93,10 @@ export class AIProcessor {
         },
       ],
     });
+
+    if (message.stop_reason === "max_tokens") {
+      throw new Error("AI response truncated (max_tokens reached) — Thai content too long");
+    }
 
     const raw =
       message.content[0]?.type === "text" ? message.content[0].text.trim() : "";
