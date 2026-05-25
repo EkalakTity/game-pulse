@@ -83,6 +83,14 @@ export function ArticlesClient({ sources, categories }: Props) {
     void fetchArticles(filters);
   }, [filters.status, filters.sourceId, filters.categoryId, fetchArticles]);
 
+  // Auto-refresh while any visible article is still pending AI processing
+  useEffect(() => {
+    const hasPending = articles.some((a) => a.aiScore === null);
+    if (!hasPending) return;
+    const timer = setInterval(() => void fetchArticles(filters), 20_000);
+    return () => clearInterval(timer);
+  }, [articles, filters, fetchArticles]);
+
   function handleSearchChange(q: string) {
     setFilters((f) => ({ ...f, q }));
     clearTimeout(searchTimer.current);
@@ -397,10 +405,10 @@ function ThumbnailCell({ article }: { article: ArticleWithRelations }) {
       alt=""
       referrerPolicy="no-referrer"
       onError={() => setImgError(true)}
-      className="h-9 w-9 rounded object-cover"
+      className="h-14 w-14 rounded object-cover"
     />
   ) : (
-    <div className="flex h-9 w-9 items-center justify-center rounded bg-surface-border">
+    <div className="flex h-14 w-14 items-center justify-center rounded bg-surface-border">
       <ImageIcon size={14} className="text-[#6b6988]" />
     </div>
   );
