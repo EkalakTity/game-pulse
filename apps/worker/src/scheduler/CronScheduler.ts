@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import { prisma } from "@gamepulse/database";
-import { ingestQueue, scheduleQueue, publishQueue } from "../queues/definitions";
+import { ingestQueue, scheduleQueue, publishQueue, aiQueue } from "../queues/definitions";
 import { runTokenExpiryCheck } from "../jobs/TokenExpiryCheck";
 
 export class CronScheduler {
@@ -27,7 +27,12 @@ export class CronScheduler {
       await this.recoverQueuedPosts();
     });
 
-    this.tasks.push(feedTask, scheduleTask, recoveryTask, tokenTask);
+    // AI recovery — every 10 minutes, re-queue articles missing AI processing
+    const aiRecoveryTask = cron.schedule("*/10 * * * *", async () => {
+      await this.recoverUnprocessedArticles();
+    });
+
+    this.tasks.push(feedTask, scheduleTask, recoveryTask, aiRecoveryTask, tokenTask);
     console.log("CronScheduler started");
   }
 
@@ -51,6 +56,26 @@ export class CronScheduler {
 
     if (stuck.length > 0) {
       console.log(`[Recovery] Re-enqueued ${stuck.length} stuck QUEUED post(s)`);
+    }
+  }
+
+  private async recoverUnprocessedArticles(): Promise<void> {
+    // Find articles older than 10 minutes that still have no AI processing
+    const threshold = new Date(Date.now() - 10 * 60 * 1000);
+    const unprocessed = await prisma.article.findMany({
+      where: { aiProcessedAt: null, createdAt: { lte: threshold } },
+      select: { id: true },
+      orderBy: { createdAt: "asc" },
+      take: 30,
+    });
+
+    for (const article of unprocessed) {
+      // No jobId so BullMQ generates a unique ID — bypasses the failed-job dedup block
+      await aiQueue.add("PROCESS_AI", { articleId: article.id });
+    }
+
+    if (unprocessed.length > 0) {
+      console.log(`[AI Recovery] Re-queued ${unprocessed.length} unprocessed article(s)`);
     }
   }
 
